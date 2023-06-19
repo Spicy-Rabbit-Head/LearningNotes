@@ -1,0 +1,174 @@
+### 基础
+
+```py
+from sqlalchemy.orm import sessionmaker
+from sqlalchemy.ext.declarative import declarative_base
+from sqlalchemy import Column,String,Integer,create_engine
+# 创建对象基类
+Base = declarative_base()
+# 继承基类
+class preson(Base):
+    # 数据库表名
+    __tablename__ = 'text'
+    # 表结构
+    id = Column(Integer(),primary_key=True)
+    name = Column(String(6))
+    sex = Column(String(6))
+    def __init__(self,id,name,sex):
+        self.id = id
+        self.name = name
+        self.sex = sex
+
+# 初始化数据库连接
+engine = create_engine('mysql+pymysql://root:666666@localhost:2333/db25',echo=False)
+# 创建DBSession
+DBSession = sessionmaker(bind=engine)
+
+# 实例化
+session = DBSession()
+# 增加
+item1 = preson(id=7,name='刘佳辉',sex='男')
+item2 = preson(id=8,name='孙楠',sex='男')
+item3 = preson(id=9,name='王璇',sex='男')
+session.add(item1)
+session.add(item2)
+session.add(item3)
+session.commit()
+session.close()
+
+# 查询
+per = session.query(preson).filter(preson.id<'4').all()
+for i in per:
+    print(i.id)
+    print(i.name)
+    print(i.sex)
+
+# 修改
+session.query(preson).filter(preson.id == '2').update({preson.name:'xxx'})
+session.commit()
+session.close()
+
+# 删除
+session.query(preson).filter(preson.id == '3').delete()
+session.commit()
+session.close()
+```
+
+### 查询 - 对象
+
+```python
+# 查询对象 返回对象
+per = session.query(preson).filter(preson.mt_cycle == '月')
+for i in per:
+    print(i.eq_id)
+```
+
+### 查询 - 对象属性
+
+```py
+# 查询属性 返回属性
+per = session.query(preson.mt_cycle).filter(preson.mt_cycle == '月')
+for i in per:
+    print(i)
+```
+
+### 查询 - filter 过滤
+
+```py
+# 把过滤器添加到原查询上，返回一个新查询
+per = session.query(preson).filter(preson.mt_cycle == '月').filter(preson.mt_date == '2022/08/28')
+for i in per:
+    print(i.eq_name)
+```
+
+### 查询 - filter_by 过滤
+
+```py
+# 把等值过滤器添加到原查询上，返回一个新查询，只能查询等值
+per = session.query(preson).filter_by(mt_cycle = '月')
+for i in per:
+    print(i.eq_name)
+```
+
+### 查询 - limit 限定
+
+```py
+# 使用指定的值限定原查询返回的结果
+per = session.query(preson).limit(10) # 限制数量
+for i in per:
+    print(i.eq_name)
+```
+
+### 查询 - offset 偏移
+
+```py
+# 偏移原查询返回的结果 查找数据的时候过滤掉前面多少条
+per = session.query(preson).offset(10) # 偏移数量
+for i in per:
+    print(i.id)
+```
+
+### 查询 - order_by 排序
+
+```py
+# 根据指定条件对原查询结果进行排序
+per = session.query(preson).order_by(preson.id.desc()) # 重新排序
+for i in per:
+    print(i.id)
+```
+
+### 查询 - all 执行器
+
+```py
+# 以列表形式返回查询的所有结果
+per = session.query(preson).all()
+for i in per:
+    print(i.id)
+```
+
+### 查询 - first 执行器
+
+```py
+# 返回查询的第一个结果，如果未查到，返回None
+per = session.query(preson).first()
+print(per.eq_name)
+```
+
+### 查询 - get 执行器
+
+```py
+# 返回指定主键对应的行，如不存在，返回None
+per = session.query(preson).get(ident=1)
+print(per.eq_name)
+```
+
+### 查询 - count 执行器
+
+```py
+# 查询数据库数量
+per = session.query(preson).count()
+print(per)
+```
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
