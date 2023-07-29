@@ -8,9 +8,54 @@
 /* 这个是多行注释 */
 ```
 
-## DDL - 数据定义语言
+## 语言定义
 
-#### 数据库创建
+#### DDL - 数据定义语言
+
+> - CREATE DATABASE: 创建数据库
+> - ALTER DATABASE: 修改数据库属性
+> - DROP DATABASE: 删除数据库
+> - CREATE SCHEMA: 创建模式（相当于数据库中的命名空间）
+> - DROP SCHEMA: 删除模式
+> - CREATE TABLE: 创建表
+> - ALTER TABLE: 修改表结构
+> - DROP TABLE: 删除表
+> - CREATE INDEX: 创建索引
+> - DROP INDEX: 删除索引
+> - CREATE VIEW: 创建视图
+> - DROP VIEW: 删除视图
+
+#### DQL - 数据查询语言
+
+> - SELECT: 从表中检索数据
+> - FROM: 指定数据源表
+> - WHERE: 设置条件过滤
+> - GROUP BY: 对结果进行分组
+> - HAVING: 设置分组后的条件过滤
+> - ORDER BY: 按指定列对结果进行排序
+> - LIMIT: 限制结果返回的记录数
+> - OFFSET: 设置结果集的偏移量
+> - JOIN: 表连接操作（包括 INNER JOIN、LEFT JOIN、RIGHT JOIN 等）
+> - UNION: 将两个或多个查询结果合并为一个结果集（去重）
+> - UNION ALL: 将两个或多个查询结果合并为一个结果集（不去重）
+> - INTERSECT: 返回两个查询结果集的交集
+> - EXCEPT: 返回第一个查询结果集中不包含在第二个查询结果集中的数据
+
+#### DML - 数据操作语言
+
+> - INSERT INTO: 向表中插入数据
+> - UPDATE: 更新表中的数据
+> - DELETE FROM: 从表中删除数据
+> - MERGE INTO: 将 INSERT、UPDATE 和 DELETE 操作合并为一条语句
+
+#### DCL - 数据控制语言
+
+> - GRANT: 授权用户或角色对数据库对象的权限
+> - REVOKE: 撤销用户或角色对数据库对象的权限
+> - COMMIT: 提交当前事务的修改
+> - ROLLBACK: 回滚当前事务的修改
+
+## 数据库创建
 
 ```postgresql
 /* 创建数据库 */
@@ -41,7 +86,7 @@ CREATE DATABASE test
     IS_TEMPLATE = FALSE;
 ```
 
-#### 数据库删除
+## 数据库删除
 
 ```postgresql
 /* 删除数据库 */
@@ -52,7 +97,7 @@ DROP DATABASE test;
 DROP DATABASE IF EXISTS test;
 ```
 
-#### 数据库修改
+## 数据库修改
 
 ```postgresql
 /* 修改数据库 */
@@ -67,7 +112,7 @@ ALTER DATABASE test SET 配置名 TO '配置值';
 ALTER DATABASE test RESET ALL;
 ```
 
-#### 数据表创建
+## 数据表创建
 
 ```postgresql
 /* 创建表 */
@@ -105,7 +150,7 @@ FROM
     customer;
 ```
 
-#### 数据表删除
+## 数据表删除
 
 ```postgresql
 /* 删除表 */
@@ -116,7 +161,7 @@ DROP TABLE IF EXISTS customer;
 -- RESTRICT —— 如果其他对象依赖于该表，则不删除该表
 ```
 
-#### 数据表修改
+## 数据表修改
 
 ```postgresql
 /* 修改表 */
@@ -154,14 +199,16 @@ ALTER TABLE customer
     DROP CONSTRAINT customer_pkey;
 ```
 
+## 约束
+
 #### 主键
 
-- 主键是定义在表上的.
-- 一个表不强制定义主键,但最多只能定义一个主键.
-- 主键可以包含一个列或者多个列.
-- 主键列的值必须是唯一的.
-- 如果主键包含多个列,则这些列的值组合起来必须是唯一的.
-- 主键列中不能包含 `NULL` 值.
+>- 主键是定义在表上的.
+>- 一个表不强制定义主键,但最多只能定义一个主键.
+>- 主键可以包含一个列或者多个列.
+>- 主键列的值必须是唯一的.
+>- 如果主键包含多个列,则这些列的值组合起来必须是唯一的.
+>- 主键列中不能包含 `NULL` 值.
 
 ```postgresql
 /* 主键 */
@@ -257,39 +304,6 @@ CREATE TABLE users
 );
 ```
 
-#### 生成列
-
-```postgresql
-/* 生成列 */
--- 生成列用来定义列的值是通过计算得到的
--- 不能直接写入或更新生成列的值
-CREATE TABLE users
-(
-    id        INTEGER PRIMARY KEY ,
-    name      VARCHAR(30) ,
-    age       INTEGER ,
-    -- 生成列
-    full_name INTEGER GENERATED ALWAYS AS (age / 2) STORED -- 存储生成列
-);
-```
-
-#### 标识列
-
-> 给列自动赋唯一值.
->
-> 一个表拥有一个或多个标识列.
-
-```postgresql
-/* 标识列 */
--- 标识列用来定义列的值是自动生成的
-CREATE TABLE users
-(
-    -- 标识列
-    id   SERIAL GENERATED ALWAYS AS IDENTITY ,
-    name VARCHAR(30)
-);
-```
-
 #### 检查约束
 
 ```postgresql
@@ -308,7 +322,40 @@ CREATE TABLE users
 );
 ```
 
-#### 自增列
+## 生成列
+
+```postgresql
+/* 生成列 */
+-- 生成列用来定义列的值是通过计算得到的
+-- 不能直接写入或更新生成列的值
+CREATE TABLE users
+(
+    id        INTEGER PRIMARY KEY ,
+    name      VARCHAR(30) ,
+    age       INTEGER ,
+    -- 生成列
+    full_name INTEGER GENERATED ALWAYS AS (age / 2) STORED -- 存储生成列
+);
+```
+
+## 标识列
+
+> 给列自动赋唯一值.
+>
+> 一个表拥有一个或多个标识列.
+
+```postgresql
+/* 标识列 */
+-- 标识列用来定义列的值是自动生成的
+CREATE TABLE users
+(
+    -- 标识列
+    id   SERIAL GENERATED ALWAYS AS IDENTITY ,
+    name VARCHAR(30)
+);
+```
+
+## 自增列
 
 |    类型名     | 存储大小 |        取值范围         | 对应的数据类型 |
 | :-----------: | :------: | :---------------------: | :------------: |
@@ -328,7 +375,7 @@ CREATE TABLE users
 );
 ```
 
-#### 序列生成器
+## 序列生成器
 
 ```postgresql
 /* 序列生成器 */
@@ -355,7 +402,7 @@ CREATE TEMPORARY
 DROP SEQUENCE IF EXISTS users_id_seq;
 ```
 
-#### 临时表
+## 临时表
 
 ```postgresql
 /* 临时表 */
@@ -370,7 +417,7 @@ CREATE TEMPORARY TABLE users
 DROP TABLE IF EXISTS users;
 ```
 
-#### 结果集创建表
+## 结果集创建表
 
 ```postgresql
 /* 结果集创建表 */
@@ -382,7 +429,7 @@ FROM
     customer;
 ```
 
-#### 事务
+## 事务
 
 > 事务特性:
 >
@@ -427,7 +474,7 @@ COMMIT;
 ROLLBACK;
 ```
 
-#### 架构
+## 架构
 
 > 一个数据库下有多个架构,相当于组
 
@@ -448,7 +495,18 @@ DROP SCHEMA IF EXISTS test;
 ALTER SCHEMA test RENAME TO test1;
 ```
 
-## DML - 数据操纵语言
+## 清空数据表
+
+```postgresql
+-- 清空表
+-- TRUNCATE 速度更快
+-- 不需要扫描表中,直接回收磁盘空间
+TRUNCATE TABLE users CASCADE;
+-- ONLY 限制只清空当前表,不清空子表
+-- CASCADE 如果外键关联,拒绝操作
+```
+
+## 数据操作表实例
 
 ```postgresql
 /* 表实例 */
@@ -470,7 +528,7 @@ CREATE TABLE IF NOT EXISTS orders
 );
 ```
 
-#### 插入数据
+## 插入数据
 
 ```postgresql
 /* 插入数据 */
@@ -511,6 +569,218 @@ ON CONFLICT (id) -- 指定冲突处理
                   name = EXCLUDED.name,
                   age  = EXCLUDED.age;
 ```
+
+## 更新数据
+
+```postgresql
+/* 更新数据 */
+UPDATE users -- 表名
+SET
+    -- 列名 = 值
+    age = 20
+WHERE
+    -- 条件
+    id = 1
+-- 返回更新的行信息
+RETURNING *;
+
+-- 使用表达式更新数据
+UPDATE users
+SET
+    -- 列名 = 表达式
+    age = age + 1
+WHERE
+    id = 2;
+
+-- 表达式函数
+UPDATE orders
+SET
+    -- 替换全部域名
+    email = REPLACE(email,'qq','163')
+RETURNING *;
+
+-- CASE 表达式
+UPDATE users
+SET
+    -- CASE 表达式
+    age = CASE
+        -- WHEN 条件 THEN 值
+              WHEN age > 21 THEN age + 1
+        -- ELSE 值
+              ELSE age - 1
+        END;
+
+-- 根据其他表更新数据
+UPDATE orders
+SET
+    email = '5463541256@163.com'
+FROM
+    -- 其他表
+    users
+WHERE
+      -- 条件
+      users.age = 21
+  AND orders.id = users.id
+RETURNING *;
+```
+
+## 删除数据
+
+```postgresql
+/* 删除数据 */
+DELETE
+FROM
+    users -- 表名
+WHERE
+    -- 条件
+    -- 没有条件时，删除所有数据
+    id = 4;
+```
+
+## 查询表实例
+
+```postgresql
+/* 表实例 */
+CREATE TABLE IF NOT EXISTS users
+(
+    id   INTEGER PRIMARY KEY ,
+    name VARCHAR(30) ,
+    age  INTEGER
+);
+```
+
+## 单表查询
+
+```postgresql
+-- 单表查询
+-- 查询所有列
+SELECT *
+FROM
+    users;
+
+-- 查询指定列
+SELECT name
+FROM
+    users;
+
+-- 查询表达式
+SELECT 5 * 3 AS result;
+-- 可通过 AS 指定别名
+```
+
+## WHERE 过滤 
+
+```postgresql
+/* 过滤 */
+SELECT *
+FROM
+    users
+WHERE
+    -- 过滤条件
+    id > 2;
+
+-- 过滤条件可以使用 AND 和 OR 连接
+SELECT *
+FROM
+    users
+WHERE
+            id > 1 AND
+            id > 5 OR
+            name = '张三';
+
+-- 过滤条件可以使用 IN 和 NOT IN 连接
+SELECT *
+FROM
+    users
+WHERE
+    -- 匹配查询
+    name IN ( '张三' , '李四' );
+SELECT *
+FROM
+    users
+WHERE
+    -- 排除查询
+    name NOT IN ('张三');
+
+-- LIKE 模糊查询
+-- % 任意字符
+-- _ 单个字符
+SELECT *
+FROM
+    users
+WHERE
+    name LIKE '%三';
+
+-- BETWEEN 区间查询
+SELECT *
+FROM
+    users
+WHERE
+    id BETWEEN 2 AND 3;
+```
+
+## ORDER BY 排序
+
+```postgresql
+/* 排序 */
+SELECT *
+FROM
+    users
+ORDER BY
+    -- 排序列
+    -- ASC 升序（默认）
+    -- DESC 降序
+    id DESC
+    -- FIRST NULL 在非 NULL 值之前
+    -- LAST NULL 在非 NULL 值之后
+    NULLS FIRST;
+-- 自定义排序
+SELECT *
+FROM
+    users
+ORDER BY
+    CASE name
+        WHEN '李四' THEN 1
+        ELSE 2
+        END;
+```
+
+## FETCH -- 限定行数
+
+```postgresql
+```
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 #### 查询数据
 
@@ -591,31 +861,11 @@ FROM weather
 GROUP BY city;
 ```
 
-#### 数据更新
 
-```postgresql
-/* 数据更新 */
--- 按条件更新
-UPDATE weather
-SET temp_lo = temp_lo - 2
-WHERE city = '上海';
-```
 
-#### 数据删除
 
-```postgresql
-/* 数据删除 */
--- 按条件删除
-DELETE
-FROM weather
-WHERE city = '南京';
 
--- 删除表中所有数据
-DELETE
-FROM weather;
-```
 
-## 高级操作
 
 #### 视图
 
@@ -640,10 +890,11 @@ FROM weatherView;
 DROP VIEW weatherView;
 ```
 
-#### 事务
 
-```postgresql
-```
+
+
+
+
 
 #### 窗口函数
 
@@ -679,7 +930,7 @@ VALUES ('武汉' , 1000 , 100);
 
 
 
-## DQL - 数据查询语言
+## 
 
 
 
