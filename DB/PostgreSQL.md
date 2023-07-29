@@ -536,21 +536,24 @@ CREATE TABLE IF NOT EXISTS orders
 INSERT
 INTO
     -- 表名（列名）列名可以顺序可交换
-    users (id , name , age)
+    users
+    (id , name , age)
 VALUES
     -- 值
     (1 , '张三' , 18);
 -- 插入多行数据
 INSERT
 INTO
-    users (id , name , age)
+    users
+    (id , name , age)
 VALUES
     (2 , '李四' , 20),
     (3 , '王五' , 22);
 -- 返回插入的行信息
 INSERT
 INTO
-    users (id , name , age)
+    users
+    (id , name , age)
 VALUES
     (4 , '赵六' , 24)
 -- RETURNING 返回插入的行信息
@@ -559,7 +562,8 @@ RETURNING id;
 -- 插入数据处理
 INSERT
 INTO
-    users (id , name , age)
+    users
+    (id , name , age)
 VALUES
     (4 , '李七' , 18)
 ON CONFLICT (id) -- 指定冲突处理
@@ -659,7 +663,8 @@ FROM
     users;
 
 -- 查询指定列
-SELECT name
+SELECT
+    name
 FROM
     users;
 
@@ -745,16 +750,304 @@ ORDER BY
         END;
 ```
 
-## FETCH -- 限定行数
+## FETCH & LIMIT -- 限定行数
 
 ```postgresql
+/* 限定行数 */
+SELECT *
+FROM
+    users
+    -- NEXT | FIRST 含义相同
+    -- NEXT ROWS | ROW 含义相同
+    FETCH NEXT 2 ROWS ONLY;
+-- LIMIT 非标准语法
+SELECT *
+FROM
+    users
+LIMIT 5;
 ```
 
+## OFFSET - 偏移行数
 
+```postgresql
+/* 偏移行数 */
+SELECT *
+FROM
+    users
+OFFSET 7;
+```
 
+## 组合分页
 
+```postgresql
+/* 分页 */
+SELECT *
+FROM
+    users
+OFFSET 3 * 2 FETCH FIRST 2 ROWS ONLY;
+```
 
+## DISTINCT - 排查重复
 
+```postgresql
+/* 排查重复数据 */
+SELECT DISTINCT name
+FROM
+    users
+ORDER BY
+    name;
+```
+
+## 列别名
+
+```postgresql
+/* 列别名 */
+SELECT
+    -- 列名 AS 别名
+    name AS user_name
+FROM
+    users;
+
+-- 列别名表达式
+SELECT
+    -- 拼接列名和列值
+    name || '的年龄是' || age AS user_age
+FROM
+    users;
+```
+
+## 表别名
+
+```postgresql
+/* 表别名 */
+-- 避免列名冲突
+SELECT
+    u.id,
+    u.age
+FROM
+    users AS u;
+```
+
+## 分组
+
+```postgresql
+/* 分组 */
+SELECT
+    -- 分组列
+    name,
+    -- 聚合函数
+    COUNT(*) AS count
+FROM
+    users
+-- 分组
+GROUP BY
+    name
+-- 排序
+ORDER BY
+    count DESC;
+```
+
+## 分组过滤
+
+```postgresql
+/* 过滤分组 */
+SELECT
+    name,
+    COUNT(*) AS count
+FROM
+    users
+GROUP BY
+    name
+-- 过滤分组
+HAVING
+    COUNT(*) > 1
+ORDER BY
+    count DESC;
+```
+
+## IN - 包含指定值
+
+```postgresql
+/* IN 运算符 */
+SELECT *
+FROM
+    users
+WHERE
+    -- 匹配查询
+    name IN ( '张三' , '李四' );
+```
+
+## 子查询
+
+```postgresql
+/* 子查询 */
+-- 一般用在 IN 和 EXISTS 中
+SELECT *
+FROM
+    users
+WHERE
+        age IN (
+        SELECT
+            age
+        FROM
+            users
+        WHERE
+            age > 21
+               );
+```
+
+## EXISTS - 检查子查询是否满足条件
+
+```postgresql
+/* EXISTS 检查子查询 */
+SELECT *
+FROM
+    users
+WHERE
+    -- 子查询返回结果不为空 为真
+    EXISTS
+    (
+        SELECT
+            age
+        FROM
+            users
+        WHERE
+            age > 21
+    );
+```
+
+## BETWEEN - 区间运算
+
+```postgresql
+/* BETWEEN 区间 */
+SELECT *
+FROM
+    users
+WHERE
+    id BETWEEN 2 AND 6;
+-- NOT BETWEEN 区间
+SELECT *
+FROM
+    users
+WHERE
+    id NOT BETWEEN 2 AND 6;
+```
+
+## LIKE - 匹配运算
+
+```postgresql
+/* LIKE 模糊查询 */
+SELECT *
+FROM
+    users
+WHERE
+    name LIKE '%三';
+-- NOT LIKE 模糊查询
+SELECT *
+FROM
+    users
+WHERE
+    name NOT LIKE '%三';
+-- _ 单个字符
+SELECT *
+FROM
+    users
+WHERE
+    name LIKE '_三';
+-- ILIKE 忽略大小写
+SELECT *
+FROM
+    users
+WHERE
+    name ILIKE '%三';
+```
+
+## IS NULL - 检查是否为NULL
+
+```postgresql
+/* IS NULL 空值 */
+SELECT *
+FROM
+    users
+WHERE
+    name IS NULL;
+-- IS NOT NULL 非空值
+SELECT *
+FROM
+    users
+WHERE
+    name IS NOT NULL;
+```
+
+## ALL - 比较所有值
+
+```postgresql
+/* ALL 比较所有值 */
+-- 比较所有值,全部满足才为真
+SELECT 2 = ALL (ARRAY [ 1 , 2 , 3 ]) AS result;
+-- 比较子查询所有值
+SELECT
+        18 > ALL (
+        SELECT age
+        FROM
+            users
+                 ) AS result;
+```
+
+## ANY - 比较所有值(任一满足)
+
+```postgresql
+/* ANY 比较任意值(任一满足) */
+SELECT 2 = ANY (ARRAY [ 1 , 2 , 3 ]) AS result;
+-- 比较子查询任意值
+SELECT
+        22 > ANY (
+        SELECT age
+        FROM
+            users
+                 ) AS result;
+```
+
+## GROUPING SETS - 分组集合
+
+```postgresql
+/* GROUPING SETS 分组集合 */
+SELECT
+    age,
+    name,
+    COUNT(*) AS count
+FROM
+    users
+GROUP BY
+    -- 分组集合
+    GROUPING SETS (
+    -- 分组列
+    (age),
+    (name), (
+    ))
+ORDER BY
+    count DESC;
+```
+
+## ROLLUP - 多维分组集合
+
+```postgresql
+/* ROLLUP 多维分组集合 */
+SELECT
+    name,
+    age,
+    COUNT(*) AS count
+FROM
+    users
+GROUP BY
+    -- 多维分组集合
+    ROLLUP (
+    name,
+    age)
+ORDER BY
+    name,
+    age;
+```
 
 
 
