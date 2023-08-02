@@ -55,6 +55,87 @@
 > - COMMIT: 提交当前事务的修改
 > - ROLLBACK: 回滚当前事务的修改
 
+## 数据类型
+
+#### 字符类型
+
+| 类型       | 描述                       |
+| :--------- | -------------------------- |
+| CHAR(N)    | 固定长度的字符串           |
+| VARCHAR(N) | 具有长度限制的可变长度文本 |
+| TEXT       | 没有长度限制的可变长度文本 |
+
+```postgresql
+CREATE TABLE test
+(
+    -- 插入是超出的是空白不会报错,会自动截断
+    -- 插入是未满的会自动补空白
+    char    CHAR(1) ,
+    -- 插入是超出的会报错
+    -- 插入是未满会自动改变长度
+    varchar VARCHAR(10) ,
+    -- 无限制字符串
+    text    TEXT
+);
+```
+
+#### 数值类型
+
++ 整数类型
+
+| 类型     | 存储大小 | 描述   | 范围             |
+| -------- | -------- | ------ | ---------------- |
+| SMALLINT | 2 字节   | 短整型 | -32,768~32,767   |
+| INTEGER  | 4 字节   | 整型   | -2,14e7~2,14e7   |
+| BIGINT   | 8 字节   | 长整型 | -9.22e18~9.22e18 |
+
++ 任意精度数
+
+> NUMERIC(precision,scale)
+>
+> + precision 允许存储的数字的总位数,含小数部分的位数
+> + scale 小数部分的位数
+
+| 类型    | 存储大小 | 描述         | 范围                                             |
+| ------- | -------- | ------------ | ------------------------------------------------ |
+| DECIMAL | 变量     | 可指定的精度 | 小数点前最多 131072 位数字;小数点后最多 16383 位 |
+| NUMERIC | 变量     | 可指定的精度 | 小数点前最多 131072 位数字;小数点后最多 16383 位 |
+
+```postgresql
+CREATE TABLE test
+(
+    -- 创建是指定总长度和小数位数
+    -- 如下 5位总长度,2位小数位数
+    decimal DECIMAL(5 , 2) ,
+    -- 还可以插入特殊值
+    -- 无穷大 Infinity
+    -- 无穷小 -Infinity
+    -- 非数   NaN
+    numeric NUMERIC(5 , 2)
+);
+```
+
++ 串行类型
+
+| 类型        | 描述                    |
+| ----------- | ----------------------- |
+| SMALLSERIAL | 自动递增短整型 SMALLINT |
+| SERIAL      | 自动递增整型 INTEGER    |
+| BIGSERIAL   | 自动递增长整型 BIGINT   |
+
++ 浮点类型
+
+| 类型             | 存储大小 | 描述         | 范围            |
+| ---------------- | -------- | ------------ | --------------- |
+| real             | 4 字节   | 单精度浮点数 | 6 位十进制精度  |
+| double precision | 8 字节   | 双精度浮点数 | 15 位十进制精度 |
+
+
+
+
+
+
+
 ## 数据库创建
 
 ```postgresql
@@ -641,18 +722,6 @@ WHERE
     id = 4;
 ```
 
-## 查询表实例
-
-```postgresql
-/* 表实例 */
-CREATE TABLE IF NOT EXISTS users
-(
-    id   INTEGER PRIMARY KEY ,
-    name VARCHAR(30) ,
-    age  INTEGER
-);
-```
-
 ## 单表查询
 
 ```postgresql
@@ -1049,13 +1118,263 @@ ORDER BY
     age;
 ```
 
+## JOIN 连接
 
++ 连接操作表
 
+```postgresql
+CREATE TABLE student (
+  -- 学生ID
+  student_id INTEGER NOT NULL,
+  -- 姓名
+  name varchar(45) NOT NULL,
+  PRIMARY KEY (student_id)
+);
 
+CREATE TABLE student_score (
+  -- 学生ID  
+  student_id INTEGER NOT NULL,
+  -- 科目  
+  subject varchar(45) NOT NULL,
+  -- 得分
+  score INTEGER NOT NULL
+);
+```
 
++ 连接数据
 
+```postgresql
+INSERT INTO
+  student (student_id, name)
+VALUES
+  (1,'Tim'),(2,'Jim'),(3,'Lucy');
 
+INSERT INTO
+  student_score (student_id, subject, score)
+VALUES
+  (1,'English',90),
+  (1,'Math',80),
+  (2,'English',85),
+  (5,'English',92);
+```
 
+#### CROSS 交叉连接
+
+```postgresql
+/* JOIN 连接 */
+-- CROSS 交叉连接
+-- 返回两个集合的笛卡尔积
+-- 返回所有可能的组合
+SELECT
+    student.*,
+    student_score.*
+FROM
+    student
+    CROSS JOIN student_score;
+```
+
+#### INNER 内连接
+
+```postgresql
+-- INNER 内连接
+-- 基于连接条件返回组合
+SELECT
+    student.*,
+    student_score.*
+FROM
+    student
+    INNER JOIN student_score
+    USING ( student_id );
+-- 连接条件相同字段可使用 USING
+```
+
+#### NATURAL 自然连接
+
+```postgresql
+-- NATURAL 自然连接
+-- 特殊的内连接
+-- 连接的表所有同名列都将做等值比较
+-- 这个连接等价于 INNER JOIN ... USING
+SELECT *
+FROM
+    student
+    NATURAL JOIN student_score;
+```
+
+#### LEFT 左连接
+
+```postgresql
+-- LEFT 左连接
+-- 返回左表所有记录和右表匹配记录
+SELECT
+    student.*,
+    student_score.*
+FROM
+    student
+    LEFT JOIN student_score
+    USING ( student_id );
+```
+
+#### RIGHT 右连接
+
+```postgresql
+-- RIGHT 右连接
+-- 返回右表所有记录和左表匹配记录
+SELECT
+    student.*,
+    student_score.*
+FROM
+    student
+    RIGHT JOIN student_score
+    USING ( student_id );
+```
+
+#### FULL 全连接
+
+```postgresql
+-- FULL 全连接
+-- 返回左连接和右连接的并集
+SELECT
+    student.*,
+    student_score.*
+FROM
+    student
+    FULL JOIN student_score
+    USING ( student_id );
+```
+
+## UNION 并集
+
+```postgresql
+/* UNION 合并查询 */
+-- 返回两个集合的并集
+SELECT *
+FROM
+    student
+-- UNION ALL 不去重
+UNION ALL
+SELECT
+    score,
+    subject
+FROM
+    student_score;
+```
+
+## INTERSECT 交集
+
+```postgresql
+/* INTERSECT 交集查询 */
+-- 返回两个集合的交集
+SELECT generate_series(1, 10)
+INTERSECT
+SELECT generate_series(5, 15);
+```
+
+## EXCEPT 差集
+
+```postgresql
+/* EXCEPT 差集查询 */
+-- 返回两个集合的差集
+SELECT generate_series(1, 10)
+EXCEPT
+SELECT generate_series(5, 15);
+```
+
+## 通用表达式与递归查询
+
+```postgresql
+/* 通用表达式与递归查询 */
+-- 语言级别的临时表
+-- 使用 WITH 定义
+WITH
+    cte_name AS (
+        -- 查询语句
+        SELECT
+            AVG(age) AS avg_age
+        FROM
+            users
+        ORDER BY
+            avg_age DESC
+        -- 创建了一个年龄平均值的临时表
+    )
+-- 使用
+SELECT
+    u.id,
+    u.age,
+    c.avg_age,
+    u.age > c.avg_age AS result
+FROM
+    users u,
+    cte_name c;
+```
+
++ 递归查询操作表
+
+```postgresql
+CREATE TABLE category
+(
+    id        SERIAL PRIMARY KEY ,
+    name      VARCHAR NOT NULL ,
+    parent_id INT ,
+    CONSTRAINT fk_category
+        FOREIGN KEY ( parent_id ) REFERENCES category ( id )
+);
+INSERT
+INTO
+    category
+    (id , name , parent_id)
+VALUES
+    (1 , 'ROOT' , NULL),
+    (2 , 'Baby' , 1),
+    (3 , 'Home And Kitchen' , 1),
+    (4 , 'Baby Care' , 2),
+    (5 , 'Feeding' , 2),
+    (6 , 'Gifts' , 2),
+    (7 , 'Safety' , 2),
+    (8 , 'Bedding' , 3),
+    (9 , 'Bath' , 3),
+    (10 , 'Furniture' , 3),
+    (11 , 'Grooming' , 4),
+    (12 , 'Hair Care' , 4),
+    (13 , 'Baby Foods' , 5),
+    (14 , 'Food Mills' , 5),
+    (15 , 'Solid Feeding' , 5),
+    (16 , 'Bed Pillows' , 8),
+    (17 , 'Bed Skirts' , 8);
+```
+
++ 递归查询
+
+```postgresql
+-- 递归查询
+WITH
+    RECURSIVE
+    -- 递归查询
+    cte_categories AS (
+        SELECT
+            id,
+            name,
+            parent_id
+        FROM
+            category
+        WHERE
+            id = 2
+        -- 合并查询结果
+        UNION
+        SELECT
+            c.id,
+            c.name,
+            c.parent_id
+        FROM
+            category c,
+            cte_categories cs
+        WHERE
+            c.parent_id = cs.id
+    )
+SELECT *
+FROM
+    cte_categories;
+```
 
 
 
