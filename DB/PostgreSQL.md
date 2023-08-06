@@ -59,11 +59,11 @@
 
 #### 字符类型
 
-| 类型       | 描述                       |
-| :--------- | -------------------------- |
-| CHAR(N)    | 固定长度的字符串           |
-| VARCHAR(N) | 具有长度限制的可变长度文本 |
-| TEXT       | 没有长度限制的可变长度文本 |
+| 类型         | 描述                       |
+| :----------- | -------------------------- |
+| `CHAR(N)`    | 固定长度的字符串           |
+| `VARCHAR(N)` | 具有长度限制的可变长度文本 |
+| `TEXT`       | 没有长度限制的可变长度文本 |
 
 ```postgresql
 CREATE TABLE test
@@ -83,11 +83,11 @@ CREATE TABLE test
 
 + 整数类型
 
-| 类型     | 存储大小 | 描述   | 范围             |
-| -------- | -------- | ------ | ---------------- |
-| SMALLINT | 2 字节   | 短整型 | -32,768~32,767   |
-| INTEGER  | 4 字节   | 整型   | -2,14e7~2,14e7   |
-| BIGINT   | 8 字节   | 长整型 | -9.22e18~9.22e18 |
+| 类型       | 存储大小 | 描述   | 范围             |
+| ---------- | -------- | ------ | ---------------- |
+| `SMALLINT` | 2 字节   | 短整型 | -32,768~32,767   |
+| `INTEGER`  | 4 字节   | 整型   | -2,14e7~2,14e7   |
+| `BIGINT`   | 8 字节   | 长整型 | -9.22e18~9.22e18 |
 
 + 任意精度数
 
@@ -96,10 +96,10 @@ CREATE TABLE test
 > + precision 允许存储的数字的总位数,含小数部分的位数
 > + scale 小数部分的位数
 
-| 类型    | 存储大小 | 描述         | 范围                                             |
-| ------- | -------- | ------------ | ------------------------------------------------ |
-| DECIMAL | 变量     | 可指定的精度 | 小数点前最多 131072 位数字;小数点后最多 16383 位 |
-| NUMERIC | 变量     | 可指定的精度 | 小数点前最多 131072 位数字;小数点后最多 16383 位 |
+| 类型      | 存储大小 | 描述         | 范围                                             |
+| --------- | -------- | ------------ | ------------------------------------------------ |
+| `DECIMAL` | 变量     | 可指定的精度 | 小数点前最多 131072 位数字;小数点后最多 16383 位 |
+| `NUMERIC` | 变量     | 可指定的精度 | 小数点前最多 131072 位数字;小数点后最多 16383 位 |
 
 ```postgresql
 CREATE TABLE test
@@ -117,18 +117,525 @@ CREATE TABLE test
 
 + 串行类型
 
-| 类型        | 描述                    |
-| ----------- | ----------------------- |
-| SMALLSERIAL | 自动递增短整型 SMALLINT |
-| SERIAL      | 自动递增整型 INTEGER    |
-| BIGSERIAL   | 自动递增长整型 BIGINT   |
+| 类型          | 描述                    |
+| ------------- | ----------------------- |
+| `SMALLSERIAL` | 自动递增短整型 SMALLINT |
+| `SERIAL`      | 自动递增整型 INTEGER    |
+| `BIGSERIAL`   | 自动递增长整型 BIGINT   |
 
 + 浮点类型
 
-| 类型             | 存储大小 | 描述         | 范围            |
-| ---------------- | -------- | ------------ | --------------- |
-| real             | 4 字节   | 单精度浮点数 | 6 位十进制精度  |
-| double precision | 8 字节   | 双精度浮点数 | 15 位十进制精度 |
+| 类型               | 存储大小 | 描述         | 范围            |
+| ------------------ | -------- | ------------ | --------------- |
+| `REAL`             | 4 字节   | 单精度浮点数 | 6 位十进制精度  |
+| `DOUBLE PRECISION` | 8 字节   | 双精度浮点数 | 15 位十进制精度 |
+
+#### 布尔类型
+
+> 布尔类型 BOOLEAN 只能接受 TRUE FALSE NULL
+>
+> >以下是接受的别名 不区分大小写
+> >
+> >TRUE  : 'true' 't' 'yes' 'y' '1'
+> >
+> >FALSE : 'false' 'f' 'no' 'n' '0'
+
+#### 日期/时间类型
+
++ 日期类型
+
+| 类型   | 存储大小 | 描述           |
+| ------ | -------- | -------------- |
+| `DATE` | 4 字节   | 日期（无时间） |
+
+```postgresql
+CREATE TABLE test
+(
+    -- 日期类型
+    -- 公元前 4713年到公元 5874897年
+    -- 必须保证数据以 yyyy-mm-dd 格式存储
+    date           DATE
+);
+```
+
++ 时间类型
+
+| 类型                  | 存储大小 | 描述                   |
+| --------------------- | -------- | ---------------------- |
+| `TIME`                | 8 字节   | 一天中的时间（无日期） |
+| `TIME WITH TIME ZONE` | 12 字节  | 一天中的时间（带时区)  |
+
+```postgresql
+CREATE TABLE test
+(
+    -- 时间类型,无时区
+    -- 00:00:00 到 24:00:00
+    -- 数据以 HH:MI:SS.ssssss 格式存储
+    -- 时:分:秒.毫秒
+    time           TIME ,
+    -- 时间类型,有时区
+    -- 00:00:00+1559 到 24:00:00-1559
+    time_zone      TIME WITH TIME ZONE
+);
+```
+
++ 时间戳类型
+
+| 类型                       | 存储大小 | 描述                 |
+| -------------------------- | -------- | -------------------- |
+| `TIMESTAMP`                | 8 字节   | 日期和时间（无时区） |
+| `TIMESTAMP WITH TIME ZONE` | 8 字节   | 日期和时间（带时区   |
+
+```postgresql
+CREATE TABLE test
+(
+    -- 日期时间类型,无时区
+    -- 公元前 4713年到公元 294276年
+    -- 数据以 yyyy-mm-dd HH:MI:SS.ssssss 格式存储
+    timestamp      TIMESTAMP ,
+    -- 日期时间类型,有时区
+    -- 公元前 4713年到公元 294276年
+    timestamp_zone TIMESTAMP WITH TIME ZONE
+);
+```
+
++ 时间间隔类型
+
+| 类型       | 存储大小 | 描述     |
+| ---------- | -------- | -------- |
+| `INTERVAL` | 16 字节  | 时间间隔 |
+
+#### 货币类型
+
+| 类型    | 存储大小 | 描述     | 范围              |
+| ------- | -------- | -------- | ----------------- |
+| `MONEY` | 8 字节   | 货币金额 | -9.22e15~+9.22e15 |
+
+#### 二进制数据类型
+
+| 类型    | 存储大小                            | 描述                 |
+| ------- | ----------------------------------- | -------------------- |
+| `BYTEA` | 1 或 4 个字节加上实际的二进制字符串 | 可变长度二进制字符串 |
+
+#### 枚举类型
+
++ 声明枚举
+
+```postgresql
+CREATE TYPE WEEK AS ENUM (
+    'Monday',
+    'Tuesday',
+    'Wednesday',
+    'Thursday',
+    'Friday',
+    'Saturday',
+    'Sunday'
+    );
+```
+
++ 使用枚举
+
+```postgresql
+CREATE TABLE test
+(
+    id  INTEGER ,
+    -- 插入非枚举值会报错
+    -- 枚举排序规则就是枚举声明时的顺序
+    day WEEK
+);
+```
+
+#### JSON类型
+
++ 创建
+
+```postgresql
+CREATE TABLE test
+(
+    json JSON
+);
+```
+
++ 插入
+
+```postgresql
+INSERT
+INTO
+    test
+VALUES
+    ('{
+      "id": 1,
+      "name": "张三"
+    }'),
+    ('{
+      "id": 2,
+      "name": "李四"
+    }');
+```
+
++ JSON操作符
+
+>-> : 获取 JSON 数组的元素或者 JSON 对象中的字段,返回值为 JSON 类型的值
+>
+>->> : 获取 JSON 数组的元素或者 JSON 对象中的字段,返回值为文本
+>
+>#> : 获取指定路径的值,返回值为 JSON 类型的值
+>
+>#>> : 获取指定路径的值,返回值为文本
+
++ 查询
+
+```postgresql
+SELECT
+    -- 使用操作符
+    -- -> 获取 json 字段的值
+    json -> 'id'                 AS id,
+    -- ->> 获取 json 字段的值文本
+    json ->> 'name'              AS name,
+    -- 多级
+    json -> 'address' ->> 'city' AS city,
+    -- 指定路径的值
+    json #>> '{address,street}'   AS street
+FROM
+    test;
+```
+
+#### 几何类型
+
++ 点
+
+| 类型    | 存储大小 | 描述       | 表示法   |
+| ------- | -------- | ---------- | -------- |
+| `POINT` | 16 字节  | 平面上的点 | （x，y） |
+
+```postgresql
+/* POINT 二维点 */
+CREATE TABLE test
+(
+    -- 基本二维构建块
+    point POINT
+);
+
+-- 创建点
+INSERT
+INTO
+    test
+VALUES
+    (POINT(1,2));
+
+-- 创建点
+INSERT
+INTO
+    test
+VALUES
+    -- x和y为各自坐标
+    -- 未浮点数
+    ('(0,3)');
+```
+
++ 线
+
+| 类型   | 存储大小 | 描述   | 表示法    |
+| ------ | -------- | ------ | --------- |
+| `LINE` | 32 字节  | 无限线 | {A，B，C} |
+
+```postgresql
+/* LINE 线 */
+CREATE TABLE test
+(
+    -- 无限长的线
+    line LINE
+);
+
+-- 创建线
+INSERT
+INTO
+    test
+VALUES
+    (LINE(POINT(1,2),POINT(3,4)));
+
+-- 创建线
+INSERT
+INTO
+    test
+VALUES
+    -- {A,B,C}式输入
+    ('{1,5,1}'),
+    -- [(x1,y1),(x2,y2)]式输入
+    ('((0,0),(1,1))');
+```
+
++ 线段
+
+| 类型   | 存储大小 | 描述     | 表示法                     |
+| ------ | -------- | -------- | -------------------------- |
+| `LSEG` | 32 字节  | 有限线段 | （（x1，y1），（x2，y2）） |
+
+```postgresql
+/* LINESTRING 线段 */
+CREATE TABLE test
+(
+    -- 有限长的线段
+    lseg LSEG
+);
+
+-- 创建线段
+INSERT
+INTO
+    test
+VALUES
+    (LSEG(POINT(1,2),POINT(3,4)));
+
+-- 创建线段
+INSERT
+INTO
+    test
+VALUES
+    -- [(x1,y1),(x2,y2)]式或
+    -- ((x1,y1),(x2,y2))式输入
+    ('((0,0),(1,1))');
+```
+
++ 矩形
+
+| 类型  | 存储大小 | 描述   | 表示法                     |
+| ----- | -------- | ------ | -------------------------- |
+| `BOX` | 32 字节  | 矩形框 | （（x1，y1），（x2，y2）） |
+
+```postgresql
+/* BOX 矩形 */
+CREATE TABLE test
+(
+    -- 矩形框
+    box BOX
+);
+
+-- 创建矩形
+INSERT
+INTO
+    test
+VALUES
+    (BOX(POINT(1,2),POINT(3,4)));
+
+-- 创建矩形
+INSERT
+INTO
+    test
+VALUES
+    -- [(x1,y1),(x2,y2)]式
+    ('((0,0),(1,1))');
+-- 按右上角和左下角的储存顺序
+```
+
++ 路径
+
+| 类型   | 存储大小    | 描述                     | 表示法             |
+| ------ | ----------- | ------------------------ | ------------------ |
+| `PATH` | 16+16n 字节 | 闭合路径（类似于多边形） | （（x1，y1）,...） |
+| `PATH` | 16+16n 字节 | 开放路径                 | [（x1，y1）,...]   |
+
+```postgresql
+/* PATH 路径 */
+CREATE TABLE test
+(
+    -- 路径
+    path PATH
+);
+
+-- 创建路径
+INSERT
+INTO
+    test
+VALUES
+    -- [(x1,y1),(x2,y2)]式或
+    -- ((x1,y1),(x2,y2))式输入
+    -- ()表示不封闭,[]表示封闭
+    ('((1,2),(3,4))');
+```
+
++ 多边型
+
+| 类型      | 存储大小    | 描述                     | 表示法             |
+| --------- | ----------- | ------------------------ | ------------------ |
+| `POLYGON` | 40+16n 字节 | 多边形（类似于封闭路径） | （（x1，y1）,...） |
+
+```postgresql
+/* POLYGON 多边形 */
+CREATE TABLE test
+(
+    -- 多边形
+    polygon POLYGON
+);
+
+-- 创建多边形
+INSERT
+INTO
+    test
+VALUES
+    -- ((x1,y1),(xn,yn))式输入
+    ('((1,2),(3,4))');
+```
+
++ 圆
+
+| 类型     | 存储大小 | 描述 | 表示法                        |
+| -------- | -------- | ---- | ----------------------------- |
+| `CIRCLE` | 24 字节  | 圈   | <（x，y），r>（中心点和半径） |
+
+```postgresql
+/* CIRCLE 圆 */
+CREATE TABLE test
+(
+    -- 圆
+    circle CIRCLE
+);
+
+-- 创建圆
+INSERT
+INTO
+    test
+VALUES
+    -- <(x,y),r>式或
+    -- ((x,y),r)式输入
+    ('((1,2),3)');
+```
+
+#### 网络地址类型
+
+| 名字       | 存储大小     | 描述                    |
+| ---------- | ------------ | ----------------------- |
+| `cidr`     | 7 或 19 字节 | IPv4 和 IPv6 网络       |
+| `inet`     | 7 或 19 字节 | IPv4 和 IPv6 主机和网络 |
+| `macaddr`  | 6 字节       | MAC 地址                |
+| `macaddr8` | 8 字节       | MAC 地址（EUI-64 格式） |
+
+```postgresql
+/* CIDR 网络地址 */
+CREATE TABLE test
+(
+    -- 网络地址
+    cidr     CIDR ,
+    -- 网络地址
+    inet     INET ,
+    -- MAC地址
+    macaddr  MACADDR ,
+    -- MAC地址(EUI-64)
+    macaddr8 MACADDR8
+);
+
+-- 创建网络地址
+INSERT
+INTO
+    test
+    (cidr , inet , macaddr , macaddr8)
+VALUES
+    -- x.x.x.x/y式输入
+    -- y为网络掩码位数
+    ('192.168.1.0/24' , '192.168.1.0/24' , '08:00:2b:01:02:03' , '08:00:2b:01:02:03:04:05');
+```
+
+#### 文本检索类型
+
+```postgresql
+/* TSVECTOR 文本搜索向量 */
+CREATE TABLE test
+(
+    -- 文本搜索向量
+    text TSVECTOR ,
+    -- 文本搜索查询
+    ts   TSQUERY
+);
+
+-- 创建文本搜索向量
+INSERT
+INTO
+    test
+    (text , ts)
+VALUES
+    ('a fat cat sat on a mat and ate a fat rat' , 'rat');
+
+SELECT *
+FROM
+    test
+WHERE
+    test.text @@ test.ts;
+```
+
+#### UUID类型
+
+> 由一组32位数的16进制数字所构成
+
+```postgresql
+/* UUID 通用唯一标识符 */
+-- 生成UUID
+SELECT gen_random_uuid();
+
+CREATE TABLE test
+(
+    -- 通用唯一标识符
+    uuid UUID DEFAULT gen_random_uuid() PRIMARY KEY
+);
+```
+
+#### XML 类型
+
+```postgresql
+-- 创建XML类型
+INSERT
+INTO
+    test
+VALUES
+    ('<a>123</a>');
+
+SELECT *
+FROM
+    test;
+```
+
+#### 数组类型
+
+```postgresql
+/* ARRAY 数组 */
+-- TYPE[]的形式创建
+-- 创建数组
+SELECT ARRAY [1,2,3];
+-- 创建数组
+SELECT '{1,2,3}'::INT[];
+CREATE TABLE test
+(
+    -- 数组
+    intArr INT[]
+);
+INSERT
+INTO
+    test
+VALUES
+    ('{1,2,3}');
+-- 数组索引
+SELECT
+    intArr[1]
+FROM
+    test;
+-- 数组搜索
+SELECT
+    intArr
+FROM
+    test
+WHERE
+    1 = ANY (intArr);
+-- 数组修改
+UPDATE
+    test
+SET
+    intArr[2] = 4
+RETURNING *;
+```
+
+
+
+
+
+
 
 
 
