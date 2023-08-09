@@ -8,6 +8,47 @@
 /* 这个是多行注释 */
 ```
 
+## PSQL 常用命令
+
+```apl
+# 列出所有的数据库
+\l
+\l+
+# 连接到数据库
+\c study
+# 使用新用户连接数据库
+\c - study
+# 列出数据库中的表
+\dt
+\dt+
+# 显示表结构
+\d users
+# 列出可用模式
+\dn
+# 列出可用的函数
+\df
+# 列出可用视图
+\dv
+# 列出用户及其角色
+\du
+# 开启查询执行时间
+\timing # 再次执行则关闭
+# 查看命令历史
+\s
+# 执行上一条命令
+\g
+# 获取 SQL 命令的帮助
+\h TRUNCATE
+# 获取 psql 的帮助
+\?
+# 从文件中执行 psql 命令
+\i 文件名
+# 打开扩展显示
+\x
+# 退出 psql
+\q
+```
+
 ## 语言定义
 
 #### DDL - 数据定义语言
@@ -717,17 +758,111 @@ CREATE TYPE TSTIME AS RANGE
 SELECT TSTIME('10:00','11:00') @> '10:30'::TIME;
 ```
 
+#### 键值对类型
 
++ 启用键值对扩展类型
 
+```postgresql
+-- 启用扩展
+CREATE EXTENSION hstore;
+-- 关闭扩展
+DROP EXTENSION hstore;
+```
 
+> "key1=>value1"一个键值对
+>
+> 多个键值对之间使用逗号分隔
 
+```postgresql
+/* HSTORE 键值对 */
+-- 启用扩展
+CREATE EXTENSION hstore;
+-- 关闭扩展
+DROP EXTENSION hstore;
 
+-- 创建键值对
+CREATE TABLE test
+(
+    product_name VARCHAR ,
+    -- 键值对
+    hstore       HSTORE
+);
 
+-- 添加键值对
+INSERT
+INTO
+    test(product_name , hstore)
+VALUES
+    ('Computer' , 'CPU=>2.5, Memory=>16G, Disk=>1T');
+-- 查询
+SELECT *
+FROM
+    test;
+-- 查询特定键
+SELECT
+    -- 可以使用->或者[]获取键值
+    hstore -> 'CPU'  AS cpu,
+    hstore['Memory'] AS memory
+FROM
+    test;
+```
 
+#### 域类型
 
+> `域`是基于另一个*基础类型的*用户定义数据类型
 
+```postgresql
+/* 域类型 */
+-- 自定义域类型
+CREATE DOMAIN CUSTOM_INT AS INTEGER -- 基于指定类型
+-- 检查约束
+    CHECK (VALUE > 18);
+-- 创建表
+CREATE TABLE test
+(
+    -- 自定义域类型
+    age CUSTOM_INT
+);
 
+INSERT
+INTO
+    test
+VALUES
+    -- 小于18会报错
+    -- 必须通过自定义域类型的检查约束
+    (20);
+DROP TABLE IF EXISTS test;
+```
 
+#### 伪类型
+
+| 类型                      | 描述                                                         |
+| ------------------------- | ------------------------------------------------------------ |
+| `any`                     | 指示函数接受任何输入数据类型                                 |
+| `anyelement`              | 指示函数接受任何数据类型                                     |
+| `anyarray`                | 指示函数接受任何数组数据类型                                 |
+| `anynonarray`             | 指示函数接受任何非数组数据类型                               |
+| `anyenum`                 | 指示函数接受任何枚举数据类型                                 |
+| `anyrange`                | 指示函数接受任何范围数据类型                                 |
+| `anymultirange`           | 指示函数接受任何多范围数据类型                               |
+| `anycompatible`           | 指示函数接受任何数据类型，并将多个参数自动提升为通用数据类型 |
+| `anycompatiblearray`      | 指示函数接受任何数组数据类型，并将多个参数自动提升为通用数据类型 |
+| `anycompatiblenonarray`   | 指示函数接受任何非数组数据类型，并将多个参数自动提升为通用数据类型 |
+| `anycompatiblerange`      | 指示函数接受任何范围数据类型，并自动将多个参数提升为通用数据类型 |
+| `anycompatiblemultirange` | 指示函数接受任何多范围数据类型，并自动将多个参数提升为通用数据类型 |
+| `cstring`                 | 指示函数接受或返回以 null 结尾的 C 字符串                    |
+| `internal`                | 指示函数接受或返回服务器内部数据类型                         |
+| `language_handler`        | 过程语言调用处理程序声明为返回                               |
+| `fdw_handler`             | 外部数据包装处理程序声明为返回                               |
+| `table_am_handler`        | 表访问方法处理程序声明为返回                                 |
+| `index_am_handler`        | 索引访问方法处理程序声明为返回                               |
+| `tsm_handler`             | 表示例方法处理程序声明为返回                                 |
+| `record`                  | 标识采用或返回未指定行类型的函数                             |
+| `trigger`                 | 声明触发器函数返回`trigger`                                  |
+| `event_trigger`           | 声明事件触发器函数以返回`event_trigger`                      |
+| `pg_ddl_command`          | 标识可用于事件触发器的 DDL 命令的表示形式                    |
+| `void`                    | 指示函数不返回任何值                                         |
+| `unknown`                 | 标识尚未解析的类型，例如，未修饰的字符串文本                 |
 
 ## 数据库创建
 
@@ -1969,110 +2104,20 @@ FROM
     cte_categories;
 ```
 
+## 聚合函数
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-#### 查询数据
-
-```postgresql
--- 查询数据
-SELECT *
-FROM weather;
-
--- 查询数据 指定列
-SELECT city,
-       temp_lo
-FROM weather;
-
--- 查询数据 列表达式
--- 相应列的值是由表达式计算得到的
-SELECT city,
-       (temp_hi + temp_lo) / 2 AS temp_avg
--- AS 为列指定别名
-FROM weather;
-
--- 查询数据 WHERE子句
-SELECT *
-FROM weather
--- WHERE子句指定了一个或多个过滤条件
-WHERE city = '上海'
-  -- AND 和 OR 用于连接多个过滤条件
-  AND prcp > 0.0;
-
--- 查询数据 排序
-SELECT *
-FROM weather
--- ORDER BY子句指定了一个或多个列名
-ORDER BY temp_lo;
-
--- 查询数据 删除重复行
-SELECT DISTINCT city
-FROM weather;
-```
-
-#### 表连接
-
-```postgresql
-/* 表连接 */
--- 内连接
-SELECT *
-FROM weather
-     JOIN cities ON city = name;
--- JOIN子句指定了连接的表和连接条件
-
--- 外连接
-SELECT *
-FROM weather
-     LEFT OUTER JOIN cities ON city = name;
--- 外连接中没有匹配的行，将会用NULL填充
-```
-
-#### 聚合函数
+> 从多个输入行计算单个结果
 
 ```postgresql
 /* 聚合函数 */
--- 最大值
-SELECT MAX(temp_lo)
-FROM weather;
-
--- 子查询并聚合
-SELECT city
-FROM weather
-WHERE temp_lo = (SELECT MAX(temp_lo) FROM weather);
-
--- 聚合排序
-SELECT city, COUNT(*), MAX(temp_lo)
-FROM weather
-GROUP BY city;
-
--- 聚合过滤分组
-SELECT city, COUNT(*) FILTER ( WHERE temp_lo > 40 ), MAX(temp_lo)
-FROM weather
-GROUP BY city;
+-- MAX 最大值
+SELECT
+    MAX(age)
+FROM
+    users;
 ```
 
-
-
-
-
-
-
-#### 视图
+## 视图
 
 >一种虚拟表，其内容由查询定义
 >
@@ -2080,33 +2125,27 @@ GROUP BY city;
 
 ```postgresql
 /* 视图 */
+-- 根据查询语句创建的虚拟表
 -- 创建视图
-CREATE VIEW weatherView AS
-SELECT name, temp_lo, temp_hi, prcp, date, location
-FROM weather,
-     cities
-WHERE city = name;
+CREATE VIEW users_string
+AS
+SELECT
+    id,
+    name,
+    age::VARCHAR AS age
+FROM
+    users;
 
 -- 查询视图
 SELECT *
-FROM weatherView;
+FROM
+    users_string;
 
 -- 删除视图
-DROP VIEW weatherView;
+DROP VIEW users_string;
 ```
 
-
-
-
-
-
-
-#### 窗口函数
-
-```postgresql
-```
-
-#### 继承 
+## 继承 
 
 ```postgresql
 /* 继承 */
@@ -2135,9 +2174,64 @@ VALUES ('武汉' , 1000 , 100);
 
 
 
-## 
 
 
 
-## DCL - 数据控制语言
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+## 窗口函数
+
+
+
+
+
+# 附1 - 聚合函数表
+
+| 函数                            | 描述                                                         |
+| ------------------------------- | ------------------------------------------------------------ |
+| `ARRAY_AGG(任意)`               | 将所有输入值（包括 null）收集到数组中或将所有输入数组连接成一个更高维度的数组 |
+| `AVG(任意基础数值类型)`         | 计算所有非空输入值的平均值（算术平均值）                     |
+| `BIT_AND(数值类型)`             | 计算所有非空输入值的按位 AND                                 |
+| `BIT_OR(数值类型)`              | 计算所有非空输入值的按位 OR                                  |
+| `BIT_XOR(数值类型)`             | 计算所有非空输入值的按位独占 OR <br />可用作一组无序值的校验和 |
+| `BOOL_AND(数值类型)`            | 如果所有非空输入值都为 true 则返回 true 否则返回 false       |
+| `BOOL_OR(数值类型)`             | 如果任何非空输入值为 true 则返回 true 否则返回 false         |
+| `COUNT(任意)`                   | 计算输入行数                                                 |
+| `EVERY(boolean)`                | 等效 BOOL_AND                                                |
+| `JSON_AGG(任意)`                | 将所有输入值（包括空值）收集到 JSON 数组中                   |
+| `JSON_OBJECT_AGG(任意,任意)`    | 将所有键/值对收集到 JSON 对象中                              |
+| `MAX(任意)`                     | 计算非空输入值的最大值                                       |
+| `MIN(任意)`                     | 计算非空输入值的最小值                                       |
+| `RANGE_AGG(范围值)`             | 计算非空输入值的并集                                         |
+| `RANGE_INTERSECT_AGG(多范围值)` | 计算非空输入值的交集                                         |
+| `STRING_AGG(值,分隔符)`         | 将非空输入值连接成字符串                                     |
+| `SUM(数值类型)`                 | 计算非空输入值的总和                                         |
+| `XMLAGG(xml)`                   | 连接非空 XML 输入值                                          |
 
