@@ -2172,6 +2172,25 @@ INTO capital
 VALUES ('武汉' , 1000 , 100);
 ```
 
+## 数据库管理
+
+#### 查询所有数据库
+
+```postgresql
+/* 查询数据库 */
+SELECT *
+FROM
+    pg_database;
+```
+
+#### 数据库复制
+
+```postgresql
+/* 数据库复制 */
+CREATE DATABASE testdb
+    WITH TEMPLATE = study;
+```
+
 
 
 
