@@ -1489,36 +1489,6 @@ WHERE
             id > 1 AND
             id > 5 OR
             name = '张三';
-
--- 过滤条件可以使用 IN 和 NOT IN 连接
-SELECT *
-FROM
-    users
-WHERE
-    -- 匹配查询
-    name IN ( '张三' , '李四' );
-SELECT *
-FROM
-    users
-WHERE
-    -- 排除查询
-    name NOT IN ('张三');
-
--- LIKE 模糊查询
--- % 任意字符
--- _ 单个字符
-SELECT *
-FROM
-    users
-WHERE
-    name LIKE '%三';
-
--- BETWEEN 区间查询
-SELECT *
-FROM
-    users
-WHERE
-    id BETWEEN 2 AND 3;
 ```
 
 ## ORDER BY 排序
@@ -1625,7 +1595,7 @@ FROM
     users AS u;
 ```
 
-## 分组
+## GROUP BY - 分组
 
 ```postgresql
 /* 分组 */
@@ -1637,14 +1607,14 @@ SELECT
 FROM
     users
 -- 分组
-GROUP BY
+GROUP BY 
     name
 -- 排序
 ORDER BY
     count DESC;
 ```
 
-## 分组过滤
+## HAVING - 分组过滤
 
 ```postgresql
 /* 过滤分组 */
@@ -1734,6 +1704,7 @@ WHERE
 
 ```postgresql
 /* LIKE 模糊查询 */
+-- % 任意字符
 SELECT *
 FROM
     users
@@ -1757,6 +1728,8 @@ FROM
     users
 WHERE
     name ILIKE '%三';
+-- ESCAPE 转义字符
+-- ESCAPE '#' 表示 # 后面的字符不作为通配符
 ```
 
 ## IS NULL - 检查是否为NULL
@@ -1839,6 +1812,26 @@ FROM
 GROUP BY
     -- 多维分组集合
     ROLLUP (
+    name,
+    age)
+ORDER BY
+    name,
+    age;
+```
+
+## CUBE - 立方多维分组笛卡尔积
+
+```postgresql
+/* CUBE 多维分组笛卡尔积 */
+SELECT
+    name,
+    age,
+    COUNT(*) AS count
+FROM
+    users
+GROUP BY
+    -- 多维分组集合
+    CUBE (
     name,
     age)
 ORDER BY
@@ -2107,6 +2100,8 @@ FROM
 ## 聚合函数
 
 > 从多个输入行计算单个结果
+>
+> [聚合函数列表](#附1 - 聚合函数表)
 
 ```postgresql
 /* 聚合函数 */
@@ -2172,6 +2167,82 @@ INTO capital
 VALUES ('武汉' , 1000 , 100);
 ```
 
+## 窗口函数
+
+```postgresql
+/* 窗口函数 */
+-- 针对每一行数据,基于和它相关的一组数据计算出结果
+SELECT
+    id,
+    name,
+    age,
+    -- 添加 OVER关键字 指定为窗口函数
+    AVG(age) OVER () AS sum_age
+FROM
+    users;
+-- 分组窗口函数
+SELECT
+    id,
+    name,
+    age,
+    grouping,
+    -- 根据分组计算
+    AVG(age) OVER (PARTITION BY grouping) AS sum_age
+FROM
+    users;
+-- 排序窗口函数
+SELECT
+    id,
+    name,
+    age,
+    grouping,
+    -- 根据排序计算
+    RANK() OVER (PARTITION BY grouping ORDER BY age DESC) AS rank
+FROM
+    users;
+-- 窗口分区
+SELECT
+    id,
+    name,
+    age,
+    grouping,
+    -- 根据窗口分区计算
+    AVG(age) OVER (PARTITION BY grouping ORDER BY age DESC ROWS BETWEEN 1 PRECEDING AND 1 FOLLOWING) AS sum_age
+-- ROWS : 以行为单位计算窗口的偏移量
+-- RANGE : 以值为单位计算窗口的偏移量
+-- BETWEEN N PRECEDING AND N FOLLOWING : 从当前行的前 N 行到后 N 行
+FROM
+    users;
+-- 定义窗口
+SELECT
+    id,
+    name,
+    age,
+    grouping,
+    -- 定义窗口
+    AVG(age) OVER w AS sum_age
+FROM
+    users
+-- 定义
+WINDOW w AS ( PARTITION BY grouping ORDER BY age DESC);
+```
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 ## 数据库管理
 
 #### 查询所有数据库
@@ -2191,47 +2262,344 @@ CREATE DATABASE testdb
     WITH TEMPLATE = study;
 ```
 
+#### 获取数据库大小
 
+```postgresql
+/* 获取数据库大小 */
+SELECT
+    PG_SIZE_PRETTY(PG_DATABASE_SIZE('study'));
+SELECT
+    datname,
+    PG_SIZE_PRETTY(PG_DATABASE_SIZE(datname)) AS size
+FROM
+    pg_database;
+```
 
+#### 获取数据库表大小
 
+```postgresql
+/* 获取数据库表大小 */
+SELECT
+    -- 不包含索引
+    PG_SIZE_PRETTY(PG_RELATION_SIZE('users'));
 
+SELECT
+    -- 包含索引
+    PG_SIZE_PRETTY(PG_TOTAL_RELATION_SIZE('users'));
+SELECT
+    tablename,
+    PG_SIZE_PRETTY(PG_TOTAL_RELATION_SIZE('users')) AS size
+FROM
+    pg_tables
+WHERE
+    schemaname = 'public';
+```
 
+#### 获取数据库索引大小
 
+```postgresql
+/* 获取数据库索引大小 */
+SELECT
+    PG_SIZE_PRETTY(PG_INDEXES_SIZE('users'));
+```
 
+#### 获取表空间大小
 
+```postgresql
+SELECT
+    PG_SIZE_PRETTY(PG_TABLESPACE_SIZE('pg_default'));
+```
 
+#### 获取值大小
 
+```postgresql
+/* 获取值大小 */
+SELECT PG_COLUMN_SIZE('hello');
+```
 
+#### 复制表
 
+```postgresql
+/* 复制表 */
+CREATE TABLE users_copy
+AS
+SELECT *
+FROM
+    users;
+```
 
+#### 创建角色
 
+```postgresql
+/* 创建角色 */
+CREATE ROLE test WITH -- 角色名
+--SUPERUSER 指定是创建用户
+    NOSUPERUSER -- 指定不是超级用户
+-- CREATEDB 指定可创建数据库
+    NOCREATEDB -- 指定不可创建数据库
+-- CREATEROLE 指定可创建角色
+    NOCREATEROLE -- 指定不可创建角色
+-- INHERIT 继承所属角色的特权
+    NOINHERIT -- 不继承所属角色的特权
+-- NOLOGIN 不允许角色登录
+    LOGIN -- 允许角色登录
+-- REPLICATION -- 指定为复制角色
+    NOREPLICATION -- 指定不为复制角色
+-- BYPASSRLS 绕过级别安全性策略
+    NOBYPASSRLS -- 不绕过级别安全性策略
+    CONNECTION LIMIT 10 -- 连接并发数限制
+    ENCRYPTED PASSWORD '666666' -- 设定加密密码或指定NULL
+    VALID UNTIL '2023.8.12 22:15:12' -- 指定密码有效期
+;
 
+/* 创建用户 */
+-- 等效于创建角色
+CREATE USER test LOGIN PASSWORD '123456';
+```
 
+#### 修改角色
 
+```postgresql
+/* 修改角色 */
+ALTER ROLE test PASSWORD '111111';
+```
 
+#### 删除角色
 
+```postgresql
+/* 删除角色 */
+DROP ROLE test;
+```
 
+#### 授权
 
+```postgresql
+/* 授权 */
+-- 授权查询权限
+GRANT SELECT
+    ON users TO test;
+```
 
+#### 撤销
 
+```postgresql
+/* 撤销 */
+REVOKE SELECT ON users FROM test;
+```
 
+#### 角色组
 
+```postgresql
+/* 创建角色组 */
+CREATE ROLE father
+    WITH
+    LOGIN
+    NOSUPERUSER
+    NOCREATEDB
+    NOCREATEROLE
+    NOINHERIT
+    PASSWORD '123123';
+/* 授权角色组相关权限 */
+GRANT CONNECT ON DATABASE
+    study TO father;
 
+/* 创建成员角色 */
+CREATE ROLE son2
+    WITH
+    NOSUPERUSER
+    NOCREATEDB
+    NOCREATEROLE
+    INHERIT
+    PASSWORD '119246'
+    ROLE father;
 
+/* 继承角色组 */
+GRANT father TO son1;
+```
 
+## 执行计划
 
+```postgresql
+/* EXPLAIN 执行计划 */
+-- EXPLAIN 用来显示查询的执行计划
+-- 选项
+-- ANALYZE 实际允许时间和统计信息
+-- VERBOSE 显示更多信息
+-- COSTS 每个节点的成本估算,行数和宽度估算
+-- SETTINGS 有关配置参数的信息
+-- BUFFERS 每个节点的缓冲区使用情况
+-- WAL 显示 WAL 使用情况,必须和 ANALYZE 一起使用
+-- TIMING 显示每个节点的实际执行时间,必须和 ANALYZE 同时使用
+-- SUMMARY 查询计划之后包括摘要信息
+-- FORMAT 指定输出格式(TEXT,JSON,YAML,XML)
+EXPLAIN (ANALYZE )
+SELECT *
+FROM
+    users;
+```
 
+## 索引
 
+> PostgreSQL 默认使用 B-tree 索引类型
 
+#### B-tree
 
+> B 树是一种自平衡树,它维护已排序的数据
+>
+> 如果模式是一个常量并且在模式的开头是锚点， 查询规划器可以对涉及模式匹配运算符 [`LIKE`](https://www.sjkjc.com/postgresql/like/) 和 `~` 的查询使用 B-tree 索引
 
-## 窗口函数
+```postgresql
+-- 例如
+column_name LIKE 'foo%'
+column_name LKE 'bar%'
+column_name  ~ '^foo'
+-- 而 col LIKE '%bar' 则不会使用 B-tree 索引
+```
 
+#### Hash
 
+> 哈希索引只能处理简单的相等比较 (`=`)
+>
+> 这意味着每当索引列使用 `=` 运算符进行比较时
+>
+> 查询计划器将考虑使用哈希索引
 
+```postgresql
+-- 创建哈希索引
+CREATE INDEX 索引名
+ON table_name USING HASH (索引列);
+```
 
+#### GIN
 
-# 附1 - 聚合函数表
+> 倒排索引适合索引复杂值(如arrar,hstore,json,range)
+>
+> 倒排索引中为每一个组成值都包含一个单独的项,它可以高效地处理测试指定组成值是否存在的查询
+>
+> 当将多个值存储在单个列中时,GIN 索引最有用
+
+#### BRIN
+
+> 块范围索引,存储有关存放在一个表的连续物理块范围上的值摘要信息
+>
+> BRIN 常用于具有线性排序顺序的列
+
+####  GiST 
+
+> 广义搜索树 用于索引几何数据类型和全文搜索
+
+#### SP-GiST
+
+> 空间分区的广义搜索树  支持分区搜索树,有助于开发各种不同的非平衡数据结构
+>
+> 例如 GIS、多媒体、电话路由和 IP 路由
+
+```postgresql
+-- 索引用来提高查询效率
+-- 索引参数表
+CREATE TABLE test
+(
+    id   INTEGER ,
+    name TEXT
+);
+-- 插入1千万条数据
+INSERT
+INTO
+    test
+SELECT
+    v,
+    'val:' || v
+FROM
+    GENERATE_SERIES(1,10000000) v;
+
+-- 无索引查询
+EXPLAIN ANALYZE
+SELECT *
+FROM
+    test
+WHERE
+    id = 1000;
+```
+
+#### 创建索引
+
+```postgresql
+/* 创建索引 */
+CREATE INDEX test_id_index
+    ON test ( id );
+
+-- 默认BTREE索引查询
+EXPLAIN ANALYZE
+SELECT *
+FROM
+    test
+WHERE
+    id = 1000000;
+
+/* 创建非默认索引 */
+CREATE INDEX test_id_index
+    -- USING 指定索引类型
+    ON test USING HASH ( id DESC NULLS LAST );
+
+/* 多列索引 */
+CREATE INDEX test_id_name_index
+    ON test USING BTREE ( id , name );
+
+EXPLAIN ANALYZE
+SELECT *
+FROM
+    users
+WHERE
+    id = 1000000 AND
+    name = 'val:1000000';
+```
+
+#### 删除索引
+
+```postgresql
+/* 删除索引 */
+DROP INDEX IF EXISTS test_id_name_index;
+```
+
+#### 查看索引
+
+```postgresql
+/* 查看索引 */
+SELECT *
+FROM
+    pg_indexes;
+```
+
+#### 唯一索引
+
+```postgresql
+/* 唯一索引 */
+-- 确保列的值是唯一的
+CREATE UNIQUE INDEX test_id_index
+    ON test USING BTREE ( id );
+
+EXPLAIN ANALYZE
+SELECT *
+FROM
+    users;
+```
+
+#### 函数索引
+
+```postgresql
+/* 函数索引 */
+CREATE INDEX test_id_index
+    ON test ( UPPER(name) );
+
+EXPLAIN ANALYZE
+SELECT *
+FROM
+    test
+WHERE
+    UPPER(name) = 'VAL:1000000';
+```
+
+<H1 id='attachments1'> 附1 - 聚合函数表 </H1>
 
 | 函数                            | 描述                                                         |
 | ------------------------------- | ------------------------------------------------------------ |
