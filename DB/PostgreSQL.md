@@ -107,7 +107,8 @@
 | `TEXT`       | 没有长度限制的可变长度文本 |
 
 ```postgresql
-CREATE TABLE test
+/* 字符类型 */
+CREATE TABLE type_char
 (
     -- 插入是超出的是空白不会报错,会自动截断
     -- 插入是未满的会自动补空白
@@ -118,6 +119,13 @@ CREATE TABLE test
     -- 无限制字符串
     text    TEXT
 );
+
+-- 插入
+INSERT
+INTO
+    type_char
+VALUES
+    ('a' , 'b' , 'c');
 ```
 
 #### 数值类型
@@ -129,6 +137,26 @@ CREATE TABLE test
 | `SMALLINT` | 2 字节   | 短整型 | -32,768~32,767   |
 | `INTEGER`  | 4 字节   | 整型   | -2,14e7~2,14e7   |
 | `BIGINT`   | 8 字节   | 长整型 | -9.22e18~9.22e18 |
+
+```postgresql
+-- 整数类型
+CREATE TABLE type_integer
+(
+    -- 短整型
+    smallint SMALLINT ,
+    -- 整型
+    integer  INTEGER ,
+    -- 长整型
+    bigint   BIGINT
+);
+
+-- 插入
+INSERT
+INTO
+    type_integer
+VALUES
+    (1 , 2 , 3);
+```
 
 + 任意精度数
 
@@ -143,17 +171,20 @@ CREATE TABLE test
 | `NUMERIC` | 变量     | 可指定的精度 | 小数点前最多 131072 位数字;小数点后最多 16383 位 |
 
 ```postgresql
-CREATE TABLE test
+-- 任意精度的浮点数
+CREATE TABLE type_decimal
 (
-    -- 创建是指定总长度和小数位数
-    -- 如下 5位总长度,2位小数位数
-    decimal DECIMAL(5 , 2) ,
-    -- 还可以插入特殊值
-    -- 无穷大 Infinity
-    -- 无穷小 -Infinity
-    -- 非数   NaN
-    numeric NUMERIC(5 , 2)
+    -- 指定精度的浮点数
+    decimal DECIMAL(10 , 2) ,
+    numeric NUMERIC(10 , 2)
 );
+
+-- 插入
+INSERT
+INTO
+    type_decimal
+VALUES
+    (1.23 , 4.56);
 ```
 
 + 串行类型
@@ -164,12 +195,50 @@ CREATE TABLE test
 | `SERIAL`      | 自动递增整型 INTEGER    |
 | `BIGSERIAL`   | 自动递增长整型 BIGINT   |
 
+```postgresql
+-- 串行类型
+CREATE TABLE type_serial
+(
+    -- 自增长的短整型
+    smallserial SMALLSERIAL ,
+    -- 自增长的整型
+    serial      SERIAL ,
+    -- 自增长的长整型
+    bigserial   BIGSERIAL
+);
+
+-- 插入
+INSERT
+INTO
+    type_serial
+    DEFAULT
+VALUES;
+```
+
 + 浮点类型
 
 | 类型               | 存储大小 | 描述         | 范围            |
 | ------------------ | -------- | ------------ | --------------- |
 | `REAL`             | 4 字节   | 单精度浮点数 | 6 位十进制精度  |
 | `DOUBLE PRECISION` | 8 字节   | 双精度浮点数 | 15 位十进制精度 |
+
+```postgresql
+-- 浮点类型
+CREATE TABLE type_float
+(
+    -- 单精度浮点数
+    real  REAL ,
+    -- 双精度浮点数
+    float FLOAT
+);
+
+-- 插入
+INSERT
+INTO
+    type_float
+VALUES
+    (1.23 , 4.56);
+```
 
 #### 布尔类型
 
@@ -190,13 +259,22 @@ CREATE TABLE test
 | `DATE` | 4 字节   | 日期（无时间） |
 
 ```postgresql
-CREATE TABLE test
+/* 日期和时间类型 */
+-- 日期类型
+CREATE TABLE type_date
 (
     -- 日期类型
     -- 公元前 4713年到公元 5874897年
     -- 必须保证数据以 yyyy-mm-dd 格式存储
-    date           DATE
+    date DATE
 );
+
+-- 插入
+INSERT
+INTO
+    type_date
+VALUES
+    ('2020-01-01');
 ```
 
 + 时间类型
@@ -207,17 +285,25 @@ CREATE TABLE test
 | `TIME WITH TIME ZONE` | 12 字节  | 一天中的时间（带时区)  |
 
 ```postgresql
-CREATE TABLE test
+-- 时间类型
+CREATE TABLE type_time
 (
     -- 时间类型,无时区
     -- 00:00:00 到 24:00:00
     -- 数据以 HH:MI:SS.ssssss 格式存储
     -- 时:分:秒.毫秒
-    time           TIME ,
+    time      TIME ,
     -- 时间类型,有时区
     -- 00:00:00+1559 到 24:00:00-1559
-    time_zone      TIME WITH TIME ZONE
+    time_zone TIME WITH TIME ZONE
 );
+
+-- 插入
+INSERT
+INTO
+    type_time
+VALUES
+    ('00:00:00' , '00:00:00+1559');
 ```
 
 + 时间戳类型
@@ -228,16 +314,28 @@ CREATE TABLE test
 | `TIMESTAMP WITH TIME ZONE` | 8 字节   | 日期和时间（带时区   |
 
 ```postgresql
-CREATE TABLE test
+-- 时间戳类型
+CREATE TABLE type_timestamp
 (
-    -- 日期时间类型,无时区
+    -- 时间戳类型,无时区
     -- 公元前 4713年到公元 294276年
     -- 数据以 yyyy-mm-dd HH:MI:SS.ssssss 格式存储
+    -- 年-月-日 时:分:秒.毫秒
     timestamp      TIMESTAMP ,
-    -- 日期时间类型,有时区
+    -- 时间戳类型,有时区
     -- 公元前 4713年到公元 294276年
+    -- 数据以 yyyy-mm-dd HH:MI:SS.ssssss 格式存储
+    -- 年-月-日 时:分:秒.毫秒
+    -- 时区
     timestamp_zone TIMESTAMP WITH TIME ZONE
 );
+
+-- 插入
+INSERT
+INTO
+    type_timestamp
+VALUES
+    ('2020-01-01 00:00:00' , '2020-01-01 00:00:00+1559');
 ```
 
 + 时间间隔类型
@@ -246,17 +344,68 @@ CREATE TABLE test
 | ---------- | -------- | -------- |
 | `INTERVAL` | 16 字节  | 时间间隔 |
 
+```postgresql
+-- 时间间隔类型
+CREATE TABLE type_interval
+(
+    -- 时间间隔类型
+    -- 无时区
+    -- 数据以 HH:MI:SS.ssssss 格式存储
+    -- 时:分:秒.毫秒
+    interval INTERVAL
+);
+
+-- 插入
+INSERT
+INTO
+    type_interval
+VALUES
+    ('00:00:00');
+```
+
 #### 货币类型
 
 | 类型    | 存储大小 | 描述     | 范围              |
 | ------- | -------- | -------- | ----------------- |
 | `MONEY` | 8 字节   | 货币金额 | -9.22e15~+9.22e15 |
 
+```postgresql
+/* 货币类型 */
+CREATE TABLE type_money
+(
+    -- 货币类型
+    money MONEY
+);
+
+-- 插入
+INSERT
+INTO
+    type_money
+VALUES
+    ('$1.23');
+```
+
 #### 二进制数据类型
 
 | 类型    | 存储大小                            | 描述                 |
 | ------- | ----------------------------------- | -------------------- |
 | `BYTEA` | 1 或 4 个字节加上实际的二进制字符串 | 可变长度二进制字符串 |
+
+```postgresql
+/* 二进制数据类型 */
+CREATE TABLE type_binary
+(
+    -- 二进制数据类型
+    bytea BYTEA
+);
+
+-- 插入
+INSERT
+INTO
+    type_binary
+VALUES
+    ('123');
+```
 
 #### 枚举类型
 
@@ -277,13 +426,21 @@ CREATE TYPE WEEK AS ENUM (
 + 使用枚举
 
 ```postgresql
-CREATE TABLE test
+-- 使用枚举类型
+CREATE TABLE type_enum
 (
-    id  INTEGER ,
+    -- 枚举类型
     -- 插入非枚举值会报错
     -- 枚举排序规则就是枚举声明时的顺序
-    day WEEK
+    week WEEK
 );
+
+-- 插入
+INSERT
+INTO
+    type_enum
+VALUES
+    ('Monday');
 ```
 
 #### JSON类型
@@ -291,7 +448,7 @@ CREATE TABLE test
 + 创建
 
 ```postgresql
-CREATE TABLE test
+CREATE TABLE type_json
 (
     json JSON
 );
@@ -300,17 +457,26 @@ CREATE TABLE test
 + 插入
 
 ```postgresql
+-- 插入
 INSERT
 INTO
-    test
+    type_json
 VALUES
     ('{
       "id": 1,
-      "name": "张三"
+      "name": "张三",
+      "address": {
+        "city": "北京",
+        "street": "朝阳区"
+      }
     }'),
     ('{
       "id": 2,
-      "name": "李四"
+      "name": "李四",
+      "address": {
+        "city": "宁波",
+        "street": "鄞州区"
+      }
     }');
 ```
 
@@ -327,6 +493,7 @@ VALUES
 + 查询
 
 ```postgresql
+-- 操作符查询
 SELECT
     -- 使用操作符
     -- -> 获取 json 字段的值
@@ -336,9 +503,9 @@ SELECT
     -- 多级
     json -> 'address' ->> 'city' AS city,
     -- 指定路径的值
-    json #>> '{address,street}'   AS street
+    json #>> '{address,street}'  AS street
 FROM
-    test;
+    type_json;
 ```
 
 #### 几何类型
@@ -351,7 +518,7 @@ FROM
 
 ```postgresql
 /* POINT 二维点 */
-CREATE TABLE test
+CREATE TABLE type_point
 (
     -- 基本二维构建块
     point POINT
@@ -360,18 +527,22 @@ CREATE TABLE test
 -- 创建点
 INSERT
 INTO
-    test
+    type_point
 VALUES
     (POINT(1,2));
 
 -- 创建点
 INSERT
 INTO
-    test
+    type_point
 VALUES
     -- x和y为各自坐标
     -- 未浮点数
     ('(0,3)');
+
+SELECT *
+FROM
+    type_point;
 ```
 
 + 线
@@ -382,7 +553,7 @@ VALUES
 
 ```postgresql
 /* LINE 线 */
-CREATE TABLE test
+CREATE TABLE type_line
 (
     -- 无限长的线
     line LINE
@@ -391,19 +562,23 @@ CREATE TABLE test
 -- 创建线
 INSERT
 INTO
-    test
+    type_line
 VALUES
     (LINE(POINT(1,2),POINT(3,4)));
 
 -- 创建线
 INSERT
 INTO
-    test
+    type_line
 VALUES
     -- {A,B,C}式输入
     ('{1,5,1}'),
     -- [(x1,y1),(x2,y2)]式输入
     ('((0,0),(1,1))');
+
+SELECT *
+FROM
+    type_line;
 ```
 
 + 线段
@@ -414,7 +589,7 @@ VALUES
 
 ```postgresql
 /* LINESTRING 线段 */
-CREATE TABLE test
+CREATE TABLE type_lseg
 (
     -- 有限长的线段
     lseg LSEG
@@ -423,18 +598,22 @@ CREATE TABLE test
 -- 创建线段
 INSERT
 INTO
-    test
+    type_lseg
 VALUES
     (LSEG(POINT(1,2),POINT(3,4)));
 
 -- 创建线段
 INSERT
 INTO
-    test
+    type_lseg
 VALUES
     -- [(x1,y1),(x2,y2)]式或
     -- ((x1,y1),(x2,y2))式输入
     ('((0,0),(1,1))');
+
+SELECT *
+FROM
+    type_lseg;
 ```
 
 + 矩形
@@ -445,7 +624,7 @@ VALUES
 
 ```postgresql
 /* BOX 矩形 */
-CREATE TABLE test
+CREATE TABLE type_box
 (
     -- 矩形框
     box BOX
@@ -454,18 +633,22 @@ CREATE TABLE test
 -- 创建矩形
 INSERT
 INTO
-    test
+    type_box
 VALUES
     (BOX(POINT(1,2),POINT(3,4)));
 
 -- 创建矩形
 INSERT
 INTO
-    test
+    type_box
 VALUES
     -- [(x1,y1),(x2,y2)]式
     ('((0,0),(1,1))');
 -- 按右上角和左下角的储存顺序
+
+SELECT *
+FROM
+    type_box;
 ```
 
 + 路径
@@ -477,7 +660,7 @@ VALUES
 
 ```postgresql
 /* PATH 路径 */
-CREATE TABLE test
+CREATE TABLE type_path
 (
     -- 路径
     path PATH
@@ -486,12 +669,16 @@ CREATE TABLE test
 -- 创建路径
 INSERT
 INTO
-    test
+    type_path
 VALUES
     -- [(x1,y1),(x2,y2)]式或
     -- ((x1,y1),(x2,y2))式输入
     -- ()表示不封闭,[]表示封闭
     ('((1,2),(3,4))');
+
+SELECT *
+FROM
+    type_path;
 ```
 
 + 多边型
@@ -502,7 +689,7 @@ VALUES
 
 ```postgresql
 /* POLYGON 多边形 */
-CREATE TABLE test
+CREATE TABLE type_polygon
 (
     -- 多边形
     polygon POLYGON
@@ -511,10 +698,14 @@ CREATE TABLE test
 -- 创建多边形
 INSERT
 INTO
-    test
+    type_polygon
 VALUES
     -- ((x1,y1),(xn,yn))式输入
     ('((1,2),(3,4))');
+
+SELECT *
+FROM
+    type_polygon;
 ```
 
 + 圆
@@ -525,7 +716,7 @@ VALUES
 
 ```postgresql
 /* CIRCLE 圆 */
-CREATE TABLE test
+CREATE TABLE type_circle
 (
     -- 圆
     circle CIRCLE
@@ -534,11 +725,15 @@ CREATE TABLE test
 -- 创建圆
 INSERT
 INTO
-    test
+    type_circle
 VALUES
     -- <(x,y),r>式或
     -- ((x,y),r)式输入
     ('((1,2),3)');
+
+SELECT *
+FROM
+    type_circle;
 ```
 
 #### 网络地址类型
@@ -552,7 +747,7 @@ VALUES
 
 ```postgresql
 /* CIDR 网络地址 */
-CREATE TABLE test
+CREATE TABLE type_network_address
 (
     -- 网络地址
     cidr     CIDR ,
@@ -567,19 +762,23 @@ CREATE TABLE test
 -- 创建网络地址
 INSERT
 INTO
-    test
+    type_network_address
     (cidr , inet , macaddr , macaddr8)
 VALUES
     -- x.x.x.x/y式输入
     -- y为网络掩码位数
     ('192.168.1.0/24' , '192.168.1.0/24' , '08:00:2b:01:02:03' , '08:00:2b:01:02:03:04:05');
+
+SELECT *
+FROM
+    type_network_address;
 ```
 
 #### 文本检索类型
 
 ```postgresql
 /* TSVECTOR 文本搜索向量 */
-CREATE TABLE test
+CREATE TABLE type_tsvector
 (
     -- 文本搜索向量
     text TSVECTOR ,
@@ -590,16 +789,16 @@ CREATE TABLE test
 -- 创建文本搜索向量
 INSERT
 INTO
-    test
+    type_tsvector
     (text , ts)
 VALUES
     ('a fat cat sat on a mat and ate a fat rat' , 'rat');
 
 SELECT *
 FROM
-    test
+    type_tsvector
 WHERE
-    test.text @@ test.ts;
+    type_tsvector.text @@ TO_TSQUERY('rat');
 ```
 
 #### UUID类型
@@ -607,11 +806,10 @@ WHERE
 > 由一组32位数的16进制数字所构成
 
 ```postgresql
-/* UUID 通用唯一标识符 */
 -- 生成UUID
 SELECT gen_random_uuid();
 
-CREATE TABLE test
+CREATE TABLE type_uuid
 (
     -- 通用唯一标识符
     uuid UUID DEFAULT gen_random_uuid() PRIMARY KEY
@@ -621,16 +819,25 @@ CREATE TABLE test
 #### XML 类型
 
 ```postgresql
+/* XML 类型 */
+CREATE TABLE type_xml
+(
+    -- XML类型
+    xml XML
+);
+
 -- 创建XML类型
 INSERT
 INTO
-    test
+    type_xml
 VALUES
-    ('<a>123</a>');
+    ('
+    <a>123</a>
+    ');
 
 SELECT *
 FROM
-    test;
+    type_xml;
 ```
 
 #### 数组类型
@@ -642,31 +849,37 @@ FROM
 SELECT ARRAY [1,2,3];
 -- 创建数组
 SELECT '{1,2,3}'::INT[];
-CREATE TABLE test
+
+CREATE TABLE type_array
 (
     -- 数组
     intArr INT[]
 );
+
+-- 插入
 INSERT
 INTO
-    test
+    type_array
 VALUES
     ('{1,2,3}');
+
 -- 数组索引
 SELECT
     intArr[1]
 FROM
-    test;
+    type_array;
+
 -- 数组搜索
 SELECT
     intArr
 FROM
-    test
+    type_array
 WHERE
     1 = ANY (intArr);
+
 -- 数组修改
 UPDATE
-    test
+    type_array
 SET
     intArr[2] = 4
 RETURNING *;
@@ -676,7 +889,7 @@ RETURNING *;
 
 ```postgresql
 /* 复合类型 */
-CREATE TYPE TESTTYPE AS
+CREATE TYPE COMPOSITE AS
 (
     -- 字段
     id   INT ,
@@ -684,16 +897,16 @@ CREATE TYPE TESTTYPE AS
 );
 
 -- 创建复合类型
-CREATE TABLE test
+CREATE TABLE type_composite
 (
     -- 复合类型
-    testType TESTTYPE
+    testType COMPOSITE
 );
 
 -- 添加
 INSERT
 INTO
-    test
+    type_composite
 VALUES
     (ROW (1,'a'));
 
@@ -701,7 +914,7 @@ VALUES
 SELECT
     (testType).name
 FROM
-    test;
+    type_composite;
 ```
 
 #### 范围
@@ -742,7 +955,7 @@ FROM
 -- (,a)小于a的值
 
 /* Multirange 多范围 */
--- Multirange是一组范围的集合
+-- Multirange 是一组范围的集合
 
 -- 判断是否包含
 SELECT '[1,2]'::INT4RANGE <@ '[0,5]'::INT4RANGE;
@@ -751,11 +964,12 @@ SELECT '[1,9]'::INT4RANGE @> 3;
 SELECT '{[1,5],[7,9]}'::INT4MULTIRANGE @> '[2,3]'::INT4RANGE;
 
 -- 自定义范围类型
-CREATE TYPE TSTIME AS RANGE
+CREATE TYPE MY_RANGE AS RANGE
 (
     SUBTYPE = TIME
 );
-SELECT TSTIME('10:00','11:00') @> '10:30'::TIME;
+
+SELECT MY_RANGE('10:00','11:00') @> '10:30'::TIME;
 ```
 
 #### 键值对类型
@@ -763,6 +977,7 @@ SELECT TSTIME('10:00','11:00') @> '10:30'::TIME;
 + 启用键值对扩展类型
 
 ```postgresql
+/* HSTORE 键值对 */
 -- 启用扩展
 CREATE EXTENSION hstore;
 -- 关闭扩展
@@ -774,14 +989,8 @@ DROP EXTENSION hstore;
 > 多个键值对之间使用逗号分隔
 
 ```postgresql
-/* HSTORE 键值对 */
--- 启用扩展
-CREATE EXTENSION hstore;
--- 关闭扩展
-DROP EXTENSION hstore;
-
 -- 创建键值对
-CREATE TABLE test
+CREATE TABLE type_hstore
 (
     product_name VARCHAR ,
     -- 键值对
@@ -791,20 +1000,22 @@ CREATE TABLE test
 -- 添加键值对
 INSERT
 INTO
-    test(product_name , hstore)
+    type_hstore(product_name , hstore)
 VALUES
     ('Computer' , 'CPU=>2.5, Memory=>16G, Disk=>1T');
+
 -- 查询
 SELECT *
 FROM
-    test;
+    type_hstore;
+
 -- 查询特定键
 SELECT
     -- 可以使用->或者[]获取键值
     hstore -> 'CPU'  AS cpu,
     hstore['Memory'] AS memory
 FROM
-    test;
+    type_hstore;
 ```
 
 #### 域类型
@@ -814,24 +1025,24 @@ FROM
 ```postgresql
 /* 域类型 */
 -- 自定义域类型
-CREATE DOMAIN CUSTOM_INT AS INTEGER -- 基于指定类型
+CREATE DOMAIN DOMAIN_INT AS INTEGER -- 基于指定类型
 -- 检查约束
     CHECK (VALUE > 18);
+
 -- 创建表
-CREATE TABLE test
+CREATE TABLE type_domain
 (
     -- 自定义域类型
-    age CUSTOM_INT
+    age DOMAIN_INT
 );
 
 INSERT
 INTO
-    test
+    type_domain
 VALUES
     -- 小于18会报错
     -- 必须通过自定义域类型的检查约束
     (20);
-DROP TABLE IF EXISTS test;
 ```
 
 #### 伪类型
@@ -868,10 +1079,10 @@ DROP TABLE IF EXISTS test;
 
 ```postgresql
 /* 创建数据库 */
-CREATE DATABASE test;
+CREATE DATABASE my_data_no_parameters;
 
 /* 创建数据库-可选参数 */
-CREATE DATABASE test
+CREATE DATABASE my_data_parameters
     WITH
     -- 指定数据库所有者
     OWNER = postgres
@@ -882,9 +1093,9 @@ CREATE DATABASE test
     -- 指定数据库区域的快捷方式
     -- LOCALE = 'zh_CN.utf8'
     -- 指定数据库的整理规则
-    LC_COLLATE = 'zh_CN.utf8'
+    LC_COLLATE = 'C'
     -- 指定数据库的字符分类
-    LC_CTYPE = 'zh_CN.utf8'
+    LC_CTYPE = 'C'
     -- 将与新数据库关联的表空间
     -- TABLESPACE = pg_default
     -- 是否允许连接到该数据库
@@ -899,26 +1110,29 @@ CREATE DATABASE test
 
 ```postgresql
 /* 删除数据库 */
-DROP DATABASE test;
+DROP DATABASE my_data_no_parameters;
+DROP DATABASE my_data_parameters;
 
 /* 删除数据库-可选参数 */
 -- 判断数据库是否存在，存在则删除
-DROP DATABASE IF EXISTS test;
+DROP DATABASE IF EXISTS my_data_no_parameters;
 ```
 
 ## 数据库修改
 
 ```postgresql
+CREATE DATABASE test;
 /* 修改数据库 */
-ALTER DATABASE test RENAME TO text;
+ALTER DATABASE test RENAME TO test_alter;
 -- 所有者
-ALTER DATABASE test OWNER TO postgres;
+ALTER DATABASE test_alter OWNER TO postgres;
 -- 连接数限制
-ALTER DATABASE test CONNECTION LIMIT 10;
+ALTER DATABASE test_alter CONNECTION LIMIT 10;
 -- 配置
-ALTER DATABASE test SET 配置名 TO '配置值';
+ALTER DATABASE test_alter SET 配置名 TO '配置值';
 -- 重置配置
-ALTER DATABASE test RESET ALL;
+ALTER DATABASE test_alter RESET ALL;
+DROP DATABASE test_alter;
 ```
 
 ## 数据表创建
@@ -944,14 +1158,14 @@ CREATE TABLE IF NOT EXISTS customer -- 表名
 -- IDENTIFY_COLUMN —— 标识列约束
 
 /* 创建表-模版创建 */
-CREATE TABLE IF NOT EXISTS customer_test
+CREATE TABLE customer_template
     -- 指定模版表
 AS TABLE customer
     -- WITH NO DATA 表示不复制数据
     WITH NO DATA;
 
 /* 创建表-结果集 */
-CREATE TABLE IF NOT EXISTS customer_test
+CREATE TABLE IF NOT EXISTS customer_result_set
     -- 指定结果集
 AS
 SELECT * -- 指定复制列
@@ -965,6 +1179,8 @@ FROM
 /* 删除表 */
 -- IF EXISTS 判断表是否存在，存在则删除
 DROP TABLE IF EXISTS customer;
+DROP TABLE IF EXISTS customer_template;
+DROP TABLE IF EXISTS customer_result_set;
 -- 参数
 -- CASCADE —— 删除表的同时删除依赖于该表的其他对象
 -- RESTRICT —— 如果其他对象依赖于该表，则不删除该表
@@ -974,38 +1190,50 @@ DROP TABLE IF EXISTS customer;
 
 ```postgresql
 /* 修改表 */
+CREATE TABLE modification_list
+(
+    id INT
+);
+
 -- 修改表名
-ALTER TABLE customer
-    RENAME TO customer_test;
+ALTER TABLE modification_list
+    RENAME TO modification_list_alter;
+
 -- 修改表架构
-ALTER TABLE customer
+ALTER TABLE modification_list_alter
     SET SCHEMA postgres.public;
+
 -- 添加列
-ALTER TABLE customer
+ALTER TABLE modification_list_alter
     ADD COLUMN IF NOT EXISTS
-        customer_id VARCHAR(10);
+        name VARCHAR(10);
+
 -- 修改列类型
-ALTER TABLE customer
-    ALTER COLUMN customer_id
+ALTER TABLE modification_list_alter
+    ALTER COLUMN name
         -- SET DATA 指定新的排序规则
-        SET DATA TYPE VARCHAR(10);
+        SET DATA TYPE TEXT;
+
 -- 设置非空约束
-ALTER TABLE customer
-    ALTER COLUMN customer_id
+ALTER TABLE modification_list_alter
+    ALTER COLUMN id
         SET NOT NULL;
+
 -- 删除非空约束
-ALTER TABLE customer
-    ALTER COLUMN customer_id
+ALTER TABLE modification_list_alter
+    ALTER COLUMN id
         DROP NOT NULL;
+
 -- 添加约束
-ALTER TABLE customer
+ALTER TABLE modification_list_alter
     -- 添加主键约束
-    ADD CONSTRAINT customer_pkey
-        PRIMARY KEY ( customer_id );
+    ADD CONSTRAINT id_primary
+        PRIMARY KEY ( id );
+
 -- 删除约束
-ALTER TABLE customer
+ALTER TABLE modification_list_alter
     -- 删除主键约束
-    DROP CONSTRAINT customer_pkey;
+    DROP CONSTRAINT id_primary;
 ```
 
 ## 约束
@@ -1022,15 +1250,18 @@ ALTER TABLE customer
 ```postgresql
 /* 主键 */
 -- 定义主键
-CREATE TABLE users
+CREATE TABLE grammar_primary_key
 (
     -- PRIMARY KEY 主键约束
     -- 主键列的值必须是唯一的,且不能为 NULL
-    id   INTEGER PRIMARY KEY ,
-    name VARCHAR(30)
+    id       INTEGER PRIMARY KEY ,
+    name     VARCHAR(30) ,
+    age      INT NOT NULL ,
+    grouping INT NOT NULL
 );
+
 -- 定义主键-多列
-CREATE TABLE users
+CREATE TABLE grammar_multiseriate_primary_key
 (
     id   INTEGER ,
     name VARCHAR(30) ,
@@ -1045,21 +1276,21 @@ CREATE TABLE users
 /* 外键 */
 -- 外键用来定义两个实体之间的约束关系
 -- 创建外键
-CREATE TABLE users
+CREATE TABLE foreign_key_primary_meter
 (
     id   INTEGER PRIMARY KEY ,
     name VARCHAR(30)
 ); -- 主表
-CREATE TABLE orders
+CREATE TABLE foreign_key
 (
     id    INTEGER ,
     email VARCHAR(30) ,
     -- 外键约束名
-    CONSTRAINT orders_users_id_fkey
+    CONSTRAINT foreign_key_primary_meter_id
         -- 指定外键列
         FOREIGN KEY ( id )
             -- 外键列
-            REFERENCES users ( id )
+            REFERENCES foreign_key_primary_meter ( id )
             -- 删除主表数据时，从表数据也删除
             ON DELETE CASCADE
             -- 更新主表数据时，从表数据也更新
@@ -1071,9 +1302,10 @@ CREATE TABLE orders
     -- SET NULL —— 删除或更新主表数据时，从表数据设置为 NULL
     -- SET DEFAULT —— 删除或更新主表数据时，从表数据设置为默认值
 );
+
 -- 删除外键
-ALTER TABLE orders
-    DROP CONSTRAINT orders_users_id_fkey;
+ALTER TABLE foreign_key
+    DROP CONSTRAINT foreign_key_primary_meter_id;
 ```
 
 #### 非空约束
@@ -1082,10 +1314,10 @@ ALTER TABLE orders
 /* 非空约束 */
 -- 非空约束用来定义列的值不能为 NULL
 -- NULL 不是空串，也不是 0，它表示什么都没有
-CREATE TABLE users
+CREATE TABLE grammar_null
 (
     id   INTEGER PRIMARY KEY ,
-    name VARCHAR(30) NOT NULL
+    name VARCHAR(30) NOT NULL -- 非空约束
 );
 ```
 
@@ -1095,13 +1327,14 @@ CREATE TABLE users
 /* 唯一约束 */
 -- 唯一约束用来定义列的值不能重复
 -- 唯一约束列可以包含 NULL 值
-CREATE TABLE users
+CREATE TABLE grammar_unique
 (
     id   INTEGER PRIMARY KEY ,
     name VARCHAR(30) UNIQUE -- 唯一约束
 );
+
 -- 多列唯一约束
-CREATE TABLE users
+CREATE TABLE grammar_multiseriate_unique
 (
     id    INTEGER PRIMARY KEY ,
     name  VARCHAR(30) ,
@@ -1118,7 +1351,7 @@ CREATE TABLE users
 ```postgresql
 /* 检查约束 */
 -- 检查约束用来定义列的值必须满足指定的条件
-CREATE TABLE users
+CREATE TABLE grammar_check
 (
     id   INTEGER PRIMARY KEY ,
     name VARCHAR(30) ,
@@ -1137,7 +1370,7 @@ CREATE TABLE users
 /* 生成列 */
 -- 生成列用来定义列的值是通过计算得到的
 -- 不能直接写入或更新生成列的值
-CREATE TABLE users
+CREATE TABLE grammar_generated_column
 (
     id        INTEGER PRIMARY KEY ,
     name      VARCHAR(30) ,
@@ -1156,10 +1389,10 @@ CREATE TABLE users
 ```postgresql
 /* 标识列 */
 -- 标识列用来定义列的值是自动生成的
-CREATE TABLE users
+CREATE TABLE grammar_identity_column
 (
     -- 标识列
-    id   SERIAL GENERATED ALWAYS AS IDENTITY ,
+    id   INTEGER GENERATED ALWAYS AS IDENTITY ,
     name VARCHAR(30)
 );
 ```
@@ -1175,9 +1408,9 @@ CREATE TABLE users
 ```postgresql
 /* 自增列 */
 -- 自增列用来定义列的值是自动生成的
--- 和标识列不同的是,自增列的值可以手动指定
-CREATE TABLE users
-(+
+-- 和标识列不同的是，自增列的值可以手动指定
+CREATE TABLE grammar_serial_column
+(
     -- 自增列
     id   SERIAL ,
     name VARCHAR(30)
@@ -1192,9 +1425,9 @@ CREATE TABLE users
 -- TEMPORARY 临时序列
 CREATE TEMPORARY
     -- 序列名
-    SEQUENCE IF NOT EXISTS users_id_seq
+    SEQUENCE IF NOT EXISTS sequence_name
     -- 序列的数据类型
-    AS INTEGER
+    AS BIGINT
     -- 序列的起始值
     START WITH 1
     -- 序列的最小值
@@ -1207,8 +1440,9 @@ CREATE TEMPORARY
     CACHE 1
     -- 序列的循环方式
     CYCLE;
+
 -- 删除序列
-DROP SEQUENCE IF EXISTS users_id_seq;
+DROP SEQUENCE IF EXISTS sequence_name;
 ```
 
 ## 临时表
@@ -1217,13 +1451,14 @@ DROP SEQUENCE IF EXISTS users_id_seq;
 /* 临时表 */
 -- 临时表用来存储临时数据
 -- 临时表只在当前会话中存在
-CREATE TEMPORARY TABLE users
+CREATE TEMPORARY TABLE grammar_temporary
 (
     id   INTEGER PRIMARY KEY ,
     name VARCHAR(30)
 );
+
 -- 删除临时表
-DROP TABLE IF EXISTS users;
+DROP TABLE IF EXISTS grammar_temporary;
 ```
 
 ## 结果集创建表
@@ -1231,11 +1466,11 @@ DROP TABLE IF EXISTS users;
 ```postgresql
 /* 结果集创建表 */
 -- 通过结果集创建表
-SELECT * -- 指定复制列   
-INTO TEMPORARY -- 是否为临时表 
-    customer_test -- 指定表名
+SELECT * -- 指定复制列
+INTO TEMPORARY -- 是否为临时表
+    grammar_null_temporary -- 指定表名
 FROM
-    customer;
+    grammar_null;
 ```
 
 ## 事务
@@ -1274,9 +1509,11 @@ BEGIN;
 -- 执行 SQL 语句
 INSERT
 INTO
-    users (name)
+    grammar_null
+    (id , name)
 VALUES
-    ('张三');
+    (1 , '张三');
+
 -- 提交事务
 COMMIT;
 -- 回滚事务
@@ -1298,24 +1535,28 @@ CREATE TABLE IF NOT EXISTS test.users
     id   INTEGER PRIMARY KEY ,
     name VARCHAR(30)
 );
--- 删除架构
-DROP SCHEMA IF EXISTS test;
+
 -- 重命名架构
 ALTER SCHEMA test RENAME TO test1;
+
+-- 删除架构
+DROP SCHEMA IF EXISTS test1 CASCADE;
 ```
 
 ## 清空数据表
 
 ```postgresql
--- 清空表
+/* 清空表 */
 -- TRUNCATE 速度更快
 -- 不需要扫描表中,直接回收磁盘空间
-TRUNCATE TABLE users CASCADE;
+TRUNCATE TABLE grammar_null CASCADE;
 -- ONLY 限制只清空当前表,不清空子表
 -- CASCADE 如果外键关联,拒绝操作
 ```
 
-## 数据操作表实例
+##  DML 操作实例
+
++ 实例
 
 ```postgresql
 /* 表实例 */
@@ -1325,11 +1566,12 @@ CREATE TABLE IF NOT EXISTS users
     name VARCHAR(30) ,
     age  INTEGER
 );
+
 CREATE TABLE IF NOT EXISTS orders
 (
     id    INTEGER PRIMARY KEY ,
     email VARCHAR(30) ,
-    CONSTRAINT orders_users_id_fkey
+    CONSTRAINT orders_users_id_foreign_key
         FOREIGN KEY ( id )
             REFERENCES users ( id )
             ON DELETE CASCADE
@@ -1350,6 +1592,7 @@ INTO
 VALUES
     -- 值
     (1 , '张三' , 18);
+
 -- 插入多行数据
 INSERT
 INTO
@@ -1358,6 +1601,7 @@ INTO
 VALUES
     (2 , '李四' , 20),
     (3 , '王五' , 22);
+
 -- 返回插入的行信息
 INSERT
 INTO
@@ -1368,6 +1612,7 @@ VALUES
 -- RETURNING 返回插入的行信息
 -- 可以指定返回的列和别名
 RETURNING id;
+
 -- 插入数据处理
 INSERT
 INTO
@@ -1403,9 +1648,18 @@ SET
     -- 列名 = 表达式
     age = age + 1
 WHERE
-    id = 2;
+    id = 2
+RETURNING *;
 
 -- 表达式函数
+-- 数据
+INSERT
+INTO
+    orders(id , email)
+VALUES
+    (1 , '11443546565@qq.com'),
+    (2 , '21212321456@qq.com');
+-- 表达式替换
 UPDATE orders
 SET
     -- 替换全部域名
@@ -1421,7 +1675,8 @@ SET
               WHEN age > 21 THEN age + 1
         -- ELSE 值
               ELSE age - 1
-        END;
+              END
+RETURNING *;
 
 -- 根据其他表更新数据
 UPDATE orders
@@ -1431,9 +1686,9 @@ FROM
     -- 其他表
     users
 WHERE
-      -- 条件
-      users.age = 21
-  AND orders.id = users.id
+    -- 条件
+    users.age = 21 AND
+    orders.id = users.id
 RETURNING *;
 ```
 
@@ -1450,6 +1705,24 @@ WHERE
     id = 4;
 ```
 
+## DQL 查询实例
+
++ 实例表
+
+```postgresql
+/* 表实例 */
+CREATE TABLE employee
+(
+    id INTEGER
+);
+```
+
++ 数据
+
+```postgresql
+
+```
+
 ## 单表查询
 
 ```postgresql
@@ -1457,13 +1730,13 @@ WHERE
 -- 查询所有列
 SELECT *
 FROM
-    users;
+    employee;
 
 -- 查询指定列
 SELECT
     name
 FROM
-    users;
+    employee;
 
 -- 查询表达式
 SELECT 5 * 3 AS result;
@@ -1476,19 +1749,21 @@ SELECT 5 * 3 AS result;
 /* 过滤 */
 SELECT *
 FROM
-    users
+    employee
 WHERE
     -- 过滤条件
     id > 2;
 
 -- 过滤条件可以使用 AND 和 OR 连接
-SELECT *
+SELECT
+    id,
+    name
 FROM
-    users
+    employee
 WHERE
             id > 1 AND
             id > 5 OR
-            name = '张三';
+            name = '小白';
 ```
 
 ## ORDER BY 排序
@@ -1497,7 +1772,7 @@ WHERE
 /* 排序 */
 SELECT *
 FROM
-    users
+    employee
 ORDER BY
     -- 排序列
     -- ASC 升序（默认）
@@ -1506,13 +1781,14 @@ ORDER BY
     -- FIRST NULL 在非 NULL 值之前
     -- LAST NULL 在非 NULL 值之后
     NULLS FIRST;
+
 -- 自定义排序
 SELECT *
 FROM
-    users
+    employee
 ORDER BY
     CASE name
-        WHEN '李四' THEN 1
+        WHEN '小红' THEN 1
         ELSE 2
         END;
 ```
@@ -1523,14 +1799,15 @@ ORDER BY
 /* 限定行数 */
 SELECT *
 FROM
-    users
+    employee
     -- NEXT | FIRST 含义相同
     -- NEXT ROWS | ROW 含义相同
     FETCH NEXT 2 ROWS ONLY;
+
 -- LIMIT 非标准语法
 SELECT *
 FROM
-    users
+    employee
 LIMIT 5;
 ```
 
@@ -1540,8 +1817,8 @@ LIMIT 5;
 /* 偏移行数 */
 SELECT *
 FROM
-    users
-OFFSET 7;
+    employee
+OFFSET 3;
 ```
 
 ## 组合分页
@@ -1550,17 +1827,18 @@ OFFSET 7;
 /* 分页 */
 SELECT *
 FROM
-    users
-OFFSET 3 * 2 FETCH FIRST 2 ROWS ONLY;
+    employee
+OFFSET 0 * 2 FETCH FIRST 2 ROWS ONLY;
 ```
 
 ## DISTINCT - 排查重复
 
 ```postgresql
 /* 排查重复数据 */
-SELECT DISTINCT name
+SELECT DISTINCT
+    name
 FROM
-    users
+    employee
 ORDER BY
     name;
 ```
@@ -1589,10 +1867,10 @@ FROM
 /* 表别名 */
 -- 避免列名冲突
 SELECT
-    u.id,
-    u.age
+    e.id,
+    e.age
 FROM
-    users AS u;
+    employee AS e;
 ```
 
 ## GROUP BY - 分组
@@ -1605,9 +1883,9 @@ SELECT
     -- 聚合函数
     COUNT(*) AS count
 FROM
-    users
+    employee
 -- 分组
-GROUP BY 
+GROUP BY
     name
 -- 排序
 ORDER BY
@@ -1622,7 +1900,7 @@ SELECT
     name,
     COUNT(*) AS count
 FROM
-    users
+    employee
 GROUP BY
     name
 -- 过滤分组
@@ -1638,10 +1916,10 @@ ORDER BY
 /* IN 运算符 */
 SELECT *
 FROM
-    users
+    employee
 WHERE
     -- 匹配查询
-    name IN ( '张三' , '李四' );
+    name IN ( '小黑' , '小绿' );
 ```
 
 ## 子查询
@@ -1651,13 +1929,13 @@ WHERE
 -- 一般用在 IN 和 EXISTS 中
 SELECT *
 FROM
-    users
+    employee
 WHERE
         age IN (
         SELECT
             age
         FROM
-            users
+            employee
         WHERE
             age > 21
                );
@@ -1669,7 +1947,7 @@ WHERE
 /* EXISTS 检查子查询 */
 SELECT *
 FROM
-    users
+    employee
 WHERE
     -- 子查询返回结果不为空 为真
     EXISTS
@@ -1677,7 +1955,7 @@ WHERE
         SELECT
             age
         FROM
-            users
+            employee
         WHERE
             age > 21
     );
@@ -1689,13 +1967,14 @@ WHERE
 /* BETWEEN 区间 */
 SELECT *
 FROM
-    users
+    employee
 WHERE
     id BETWEEN 2 AND 6;
+
 -- NOT BETWEEN 区间
 SELECT *
 FROM
-    users
+    employee
 WHERE
     id NOT BETWEEN 2 AND 6;
 ```
@@ -1707,27 +1986,30 @@ WHERE
 -- % 任意字符
 SELECT *
 FROM
-    users
+    employee
 WHERE
-    name LIKE '%三';
+    name LIKE '%红';
+
 -- NOT LIKE 模糊查询
 SELECT *
 FROM
-    users
+    employee
 WHERE
-    name NOT LIKE '%三';
+    name NOT LIKE '%红';
+
 -- _ 单个字符
 SELECT *
 FROM
-    users
+    employee
 WHERE
-    name LIKE '_三';
+    name LIKE '_白';
+
 -- ILIKE 忽略大小写
 SELECT *
 FROM
-    users
+    employee
 WHERE
-    name ILIKE '%三';
+    name ILIKE '%黑';
 -- ESCAPE 转义字符
 -- ESCAPE '#' 表示 # 后面的字符不作为通配符
 ```
@@ -1738,13 +2020,14 @@ WHERE
 /* IS NULL 空值 */
 SELECT *
 FROM
-    users
+    employee
 WHERE
     name IS NULL;
+
 -- IS NOT NULL 非空值
 SELECT *
 FROM
-    users
+    employee
 WHERE
     name IS NOT NULL;
 ```
@@ -1755,12 +2038,14 @@ WHERE
 /* ALL 比较所有值 */
 -- 比较所有值,全部满足才为真
 SELECT 2 = ALL (ARRAY [ 1 , 2 , 3 ]) AS result;
+
 -- 比较子查询所有值
 SELECT
         18 > ALL (
-        SELECT age
+        SELECT
+            age
         FROM
-            users
+            employee
                  ) AS result;
 ```
 
@@ -1769,12 +2054,14 @@ SELECT
 ```postgresql
 /* ANY 比较任意值(任一满足) */
 SELECT 2 = ANY (ARRAY [ 1 , 2 , 3 ]) AS result;
+
 -- 比较子查询任意值
 SELECT
         22 > ANY (
-        SELECT age
+        SELECT
+            age
         FROM
-            users
+            employee
                  ) AS result;
 ```
 
@@ -1787,7 +2074,7 @@ SELECT
     name,
     COUNT(*) AS count
 FROM
-    users
+    employee
 GROUP BY
     -- 分组集合
     GROUPING SETS (
@@ -1808,7 +2095,7 @@ SELECT
     age,
     COUNT(*) AS count
 FROM
-    users
+    employee
 GROUP BY
     -- 多维分组集合
     ROLLUP (
@@ -1828,7 +2115,7 @@ SELECT
     age,
     COUNT(*) AS count
 FROM
-    users
+    employee
 GROUP BY
     -- 多维分组集合
     CUBE (
@@ -1839,7 +2126,7 @@ ORDER BY
     age;
 ```
 
-## JOIN 连接
+## 连接及集合实例
 
 + 连接操作表
 
@@ -1878,6 +2165,8 @@ VALUES
   (2,'English',85),
   (5,'English',92);
 ```
+
+## JOIN 连接
 
 #### CROSS 交叉连接
 
@@ -2013,7 +2302,7 @@ WITH
         SELECT
             AVG(age) AS avg_age
         FROM
-            users
+            employee
         ORDER BY
             avg_age DESC
         -- 创建了一个年龄平均值的临时表
@@ -2109,7 +2398,7 @@ FROM
 SELECT
     MAX(age)
 FROM
-    users;
+    employee;
 ```
 
 ## 视图
@@ -2122,22 +2411,20 @@ FROM
 /* 视图 */
 -- 根据查询语句创建的虚拟表
 -- 创建视图
-CREATE VIEW users_string
+CREATE VIEW employee_string
 AS
 SELECT
-    id,
-    name,
-    age::VARCHAR AS age
+    name
 FROM
-    users;
+    employee;
 
 -- 查询视图
 SELECT *
 FROM
-    users_string;
+    employee_string;
 
 -- 删除视图
-DROP VIEW users_string;
+DROP VIEW employee_string;
 ```
 
 ## 继承 
@@ -2147,15 +2434,15 @@ DROP VIEW users_string;
 -- 创建表
 CREATE TABLE capital
 (
-    name       text ,
-    population real ,
-    elevation  int
+    name       TEXT ,
+    population REAL ,
+    elevation  INT
 );
 
 -- 创建继承表
 CREATE TABLE capitals
 (
-    state text
+    state TEXT
 ) INHERITS ( capital );
 -- INHERITS子句指定了继承的父表
 
@@ -2163,8 +2450,17 @@ CREATE TABLE capitals
 -- 查询父表，可以看到子表的数据
 -- 查询子表，只能看到子表的数据
 INSERT
-INTO capital
-VALUES ('武汉' , 1000 , 100);
+INTO
+    capital
+VALUES
+    ('武汉' , 1000 , 100);
+
+SELECT *
+FROM
+    capital;
+SELECT *
+FROM
+    capitals;
 ```
 
 ## 窗口函数
@@ -2179,52 +2475,53 @@ SELECT
     -- 添加 OVER关键字 指定为窗口函数
     AVG(age) OVER () AS sum_age
 FROM
-    users;
+    employee;
+
 -- 分组窗口函数
 SELECT
     id,
     name,
     age,
-    grouping,
     -- 根据分组计算
-    AVG(age) OVER (PARTITION BY grouping) AS sum_age
+    AVG(age) OVER (PARTITION BY name) AS sum_age
 FROM
-    users;
+    employee;
+
 -- 排序窗口函数
 SELECT
     id,
     name,
     age,
-    grouping,
     -- 根据排序计算
-    RANK() OVER (PARTITION BY grouping ORDER BY age DESC) AS rank
+    RANK() OVER (PARTITION BY name ORDER BY age DESC ) AS rank
 FROM
-    users;
+    employee;
+
+
 -- 窗口分区
 SELECT
     id,
     name,
     age,
-    grouping,
     -- 根据窗口分区计算
-    AVG(age) OVER (PARTITION BY grouping ORDER BY age DESC ROWS BETWEEN 1 PRECEDING AND 1 FOLLOWING) AS sum_age
+    AVG(age) OVER (PARTITION BY name ORDER BY age DESC ROWS BETWEEN 1 PRECEDING AND 1 FOLLOWING) AS sum_age
 -- ROWS : 以行为单位计算窗口的偏移量
 -- RANGE : 以值为单位计算窗口的偏移量
 -- BETWEEN N PRECEDING AND N FOLLOWING : 从当前行的前 N 行到后 N 行
 FROM
-    users;
+    employee;
+
 -- 定义窗口
 SELECT
     id,
     name,
     age,
-    grouping,
     -- 定义窗口
     AVG(age) OVER w AS sum_age
 FROM
-    users
+    employee
 -- 定义
-WINDOW w AS ( PARTITION BY grouping ORDER BY age DESC);
+WINDOW w AS ( PARTITION BY name ORDER BY age DESC);
 ```
 
 
@@ -2259,7 +2556,9 @@ FROM
 ```postgresql
 /* 数据库复制 */
 CREATE DATABASE testdb
-    WITH TEMPLATE = study;
+    WITH TEMPLATE study;
+
+DROP DATABASE testdb;
 ```
 
 #### 获取数据库大小
@@ -2281,18 +2580,19 @@ FROM
 /* 获取数据库表大小 */
 SELECT
     -- 不包含索引
-    PG_SIZE_PRETTY(PG_RELATION_SIZE('users'));
+    PG_SIZE_PRETTY(PG_RELATION_SIZE('employee'));
 
 SELECT
     -- 包含索引
-    PG_SIZE_PRETTY(PG_TOTAL_RELATION_SIZE('users'));
+    PG_SIZE_PRETTY(PG_TOTAL_RELATION_SIZE('employee'));
+
 SELECT
     tablename,
-    PG_SIZE_PRETTY(PG_TOTAL_RELATION_SIZE('users')) AS size
+    PG_SIZE_PRETTY(PG_TOTAL_RELATION_SIZE('employee')) AS size
 FROM
     pg_tables
 WHERE
-    schemaname = 'public';
+    schemaname = 'grammar';
 ```
 
 #### 获取数据库索引大小
@@ -2300,7 +2600,7 @@ WHERE
 ```postgresql
 /* 获取数据库索引大小 */
 SELECT
-    PG_SIZE_PRETTY(PG_INDEXES_SIZE('users'));
+    PG_SIZE_PRETTY(PG_INDEXES_SIZE('employee'));
 ```
 
 #### 获取表空间大小
@@ -2321,11 +2621,11 @@ SELECT PG_COLUMN_SIZE('hello');
 
 ```postgresql
 /* 复制表 */
-CREATE TABLE users_copy
+CREATE TABLE employee_copy
 AS
 SELECT *
 FROM
-    users;
+    employee;
 ```
 
 #### 创建角色
@@ -2435,7 +2735,7 @@ GRANT father TO son1;
 EXPLAIN (ANALYZE )
 SELECT *
 FROM
-    users;
+    employee;
 ```
 
 ## 索引
@@ -2448,14 +2748,6 @@ FROM
 >
 > 如果模式是一个常量并且在模式的开头是锚点， 查询规划器可以对涉及模式匹配运算符 [`LIKE`](https://www.sjkjc.com/postgresql/like/) 和 `~` 的查询使用 B-tree 索引
 
-```postgresql
--- 例如
-column_name LIKE 'foo%'
-column_name LKE 'bar%'
-column_name  ~ '^foo'
--- 而 col LIKE '%bar' 则不会使用 B-tree 索引
-```
-
 #### Hash
 
 > 哈希索引只能处理简单的相等比较 (`=`)
@@ -2463,12 +2755,6 @@ column_name  ~ '^foo'
 > 这意味着每当索引列使用 `=` 运算符进行比较时
 >
 > 查询计划器将考虑使用哈希索引
-
-```postgresql
--- 创建哈希索引
-CREATE INDEX 索引名
-ON table_name USING HASH (索引列);
-```
 
 #### GIN
 
@@ -2497,15 +2783,16 @@ ON table_name USING HASH (索引列);
 ```postgresql
 -- 索引用来提高查询效率
 -- 索引参数表
-CREATE TABLE test
+CREATE TABLE grammar_index
 (
     id   INTEGER ,
     name TEXT
 );
+
 -- 插入1千万条数据
 INSERT
 INTO
-    test
+    grammar_index
 SELECT
     v,
     'val:' || v
@@ -2516,7 +2803,7 @@ FROM
 EXPLAIN ANALYZE
 SELECT *
 FROM
-    test
+    grammar_index
 WHERE
     id = 1000;
 ```
@@ -2526,24 +2813,24 @@ WHERE
 ```postgresql
 /* 创建索引 */
 CREATE INDEX test_id_index
-    ON test ( id );
+    ON grammar_index ( id );
 
 -- 默认BTREE索引查询
 EXPLAIN ANALYZE
 SELECT *
 FROM
-    test
+    grammar_index
 WHERE
     id = 1000000;
 
 /* 创建非默认索引 */
 CREATE INDEX test_id_index
     -- USING 指定索引类型
-    ON test USING HASH ( id DESC NULLS LAST );
+    ON grammar_index USING HASH ( id DESC NULLS LAST );
 
 /* 多列索引 */
 CREATE INDEX test_id_name_index
-    ON test USING BTREE ( id , name );
+    ON grammar_index USING BTREE ( id , name );
 
 EXPLAIN ANALYZE
 SELECT *
@@ -2558,7 +2845,7 @@ WHERE
 
 ```postgresql
 /* 删除索引 */
-DROP INDEX IF EXISTS test_id_name_index;
+DROP INDEX IF EXISTS test_id_index;
 ```
 
 #### 查看索引
@@ -2576,12 +2863,12 @@ FROM
 /* 唯一索引 */
 -- 确保列的值是唯一的
 CREATE UNIQUE INDEX test_id_index
-    ON test USING BTREE ( id );
+    ON grammar_index USING BTREE ( id );
 
 EXPLAIN ANALYZE
 SELECT *
 FROM
-    users;
+    grammar_index;
 ```
 
 #### 函数索引
@@ -2589,18 +2876,17 @@ FROM
 ```postgresql
 /* 函数索引 */
 CREATE INDEX test_id_index
-    ON test ( UPPER(name) );
+    ON grammar_index ( UPPER(name) );
 
 EXPLAIN ANALYZE
 SELECT *
 FROM
-    test
+    grammar_index
 WHERE
     UPPER(name) = 'VAL:1000000';
 ```
 
-
-<H1 id='attachments1'> 附1 - 聚合函数表 </H1>
+# 附1 - 聚合函数表
 
 | 函数                            | 描述                                                         |
 | ------------------------------- | ------------------------------------------------------------ |
@@ -2622,4 +2908,12 @@ WHERE
 | `STRING_AGG(值,分隔符)`         | 将非空输入值连接成字符串                                     |
 | `SUM(数值类型)`                 | 计算非空输入值的总和                                         |
 | `XMLAGG(xml)`                   | 连接非空 XML 输入值                                          |
+
+
+
+
+
+
+
+# 附2 - 窗口函数
 
