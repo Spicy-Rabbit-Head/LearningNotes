@@ -148,7 +148,7 @@ public class UserController {
 @RequestMapping(value = "/quick", method = RequestMethod.GET, params = {"username"})
 ```
 
-# SpringMCV 数据响应
+# SpringMVC 数据响应
 
 ### 页面跳转
 

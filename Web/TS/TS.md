@@ -248,6 +248,22 @@ enum Sex {
 }
 
 console.log(Sex)
+
+// 异构枚举
+enum Answer {
+    yes = 1,
+    no = 'no'
+}
+
+console.log(Answer)
+
+// 反向映射
+enum Color1 {
+    Red,
+    Green,
+}
+
+console.log(Color1[0])
 ```
 
 ### never类型
@@ -267,8 +283,23 @@ xm()
 
 ```tsx
 // symbol 唯一
-let a1:symbol = Symbol('a');
+let a1: symbol = Symbol('a');
 console.log(a1);
+
+// 反射键
+let b1: symbol = Symbol('a');
+let b2: symbol = Symbol('a');
+let obj = {
+    name: 'jack',
+    [b1]: 'hello',
+    [b2]: 'world',
+}
+// for in 无法遍历symbol
+// Object.keys() 无法遍历symbol
+// Object.getOwnPropertyNames() 无法遍历symbol
+// Object.getOwnPropertySymbols() 可以遍历symbol,但是无法遍历普通键
+// 取键
+console.log(Reflect.ownKeys(obj));
 ```
 
 ### 类型断言 | 联合类型 | 交叉类型
@@ -335,7 +366,6 @@ let lo: Location = window.location;
 // 使用接口约束类
 interface vuecls {
     name: string;
-
     init(): void;
 }
 
@@ -360,6 +390,7 @@ v.init();
 ```
 
 ```tsx
+// get set
 class style {
     color: string;
 
@@ -379,6 +410,116 @@ class style {
 const style1 = new style();
 style1.color = 'blue';
 console.log(style1.getcolor);
+```
+
+```tsx
+// 类的修饰符
+// public: 公共的,默认的
+// private: 私有的,只能在类内部使用
+// protected: 受保护的,只能在类内部和子类中使用
+// readonly: 只读的,不能修改
+```
+
+```tsx
+// 简单的虚拟DOM
+// 类型声明
+interface VNodeNames {
+    tag: string
+
+    text?: string
+
+    children?: VNodeNames[]
+}
+
+// 虚拟DOM
+class Dom {
+    // 根节点
+    createElement(el: string) {
+        return document.createElement(el)
+    }
+
+    // 填充文本
+    setText(el: HTMLElement, text: string) {
+        el.textContent = text
+    }
+
+    // 渲染函数(深度优先)
+    render(data: VNodeNames) {
+        // 创建根节点
+        let root = this.createElement(data.tag)
+        // 渲染子节点
+        if (data.children && Array.isArray(data.children)) {
+            data.children.forEach((item) => {
+                let child = this.render(item)
+                root.appendChild(child)
+            })
+        } else {
+            if (data.text != null) {
+                this.setText(root, data.text)
+            }
+        }
+        return root
+    }
+}
+
+// 测试
+let data: VNodeNames = {
+    tag: 'div',
+    children: [
+        {
+            tag: 'p',
+            text: 'hello'
+
+        },
+        {
+            tag: 'p',
+            text: 'world'
+        }
+    ]
+}
+// 挂载到#app
+let dom = new Dom()
+let root = dom.render(data)
+let app = document.querySelector('#app') || document.body
+app.appendChild(root)
+```
+
+```tsx
+// super 调用父类的构造函数
+class Animal {
+    name: string;
+    constructor(name: string) {
+        this.name = name;
+    }
+    move(distance: number = 0) {
+        console.log(`${this.name} moved ${distance}m`);
+    }
+}
+
+class Snake extends Animal {
+    constructor(name: string) {
+        super(name);
+    }
+    move(distance: number = 5) {
+        console.log('Slithering...');
+        super.move(distance);
+    }
+}
+
+// 测试
+let sam = new Snake('Sammy the Python');
+sam.move();
+```
+
+```tsx
+// 静态方法
+class Person {
+    static sayHello() {
+        console.log('hello');
+    }
+}
+
+Person.sayHello();
 ```
 
 ### 抽象类
@@ -435,6 +576,20 @@ console.log(g.next());
 console.log(g.next());
 
 // 迭代器
+const each = (value: any) => {
+    let i: any = value[Symbol.iterator]();
+    let next: any = {done: false};
+    while (!next.done) {
+        next = i.next();
+        if (!next.done) {
+            console.log(next.value);
+        }
+    }
+}
+
+each(['小白', '小黑', '小红']);
+
+// 迭代器语法糖
 let set: Set<string> = new Set(['小白1', '小黑2', '小红3']);
 for (let value of set) {
     console.log(value);
@@ -463,6 +618,204 @@ function f<T extends number>(a: T, b: T) {
 console.log(f(1, 2));
 ```
 
+### TS 配置
+
+```json
+{
+  "compilerOptions": {
+    /* 项目 */
+    // 启用增量编译
+    "incremental": true,
+    // 增量编译文件的存储位置
+    // "tsBuildInfoFile": "./.tsbuildinfo",
+    // 在引用复合项目时禁用首选源文件而不是声明文件
+    // "disableSourceOfProjectReferenceRedirect": true,
+    // 在编辑时,从多项目参考检查中选择一个项目
+    // "disableSolutionSearching": true,
+    // 减少TypeScript自动加载的项目数量
+    // "disableReferencedProjectLoad": true,
+    // 打印诊断信息
+    // "diagnostics": true,
+
+    // 语言与环境
+    // 目标语言的版本
+    "target": "ES2020",
+    // TS 需要引入的库,即声明文件
+    "lib": [
+      "ES2020"
+    ],
+    // jsx解析器
+    "jsx": "preserve",
+    "experimentalDecorators": true,
+    //
+    "emitDecoratorMetadata": true,
+    // jsx语法解析器
+    "jsxFactory": "React.createElement",
+    // 指定用于片段的JSX片段引用
+    // "jsxFragmentFactory": "",
+    // 指定用于导入JSX工厂函数的模块说明符
+    // "jsxImportSource": "",
+    // 指定为“createElement”调用的对象
+    // "reactNamespace": "",
+    // 禁用包含任何库文件
+    // "noLib": true,
+    // 发出符合ecmascript标准的类字段
+    // "useDefineForClassFields": true,
+    // 控制用来检测模块格式JS文件的方法
+    // "moduleDetection": "auto",
+
+
+    // 模块
+    // 生成代码的模版标准
+    "module": "ESNext",
+    // 模块解析策略
+    "moduleResolution": "node",
+    // 解析非相对模块名的基准目录
+    // "baseUrl": "./",
+    // 路径映射,相对于baseUrl
+    "paths": {},
+    // 指定输出文件目录(用于输出),用于控制输出目录结构
+    // "rootDirs": [],
+    // 声明文件的路径
+    // "typeRoots": [],
+    // 加载的声明文件包
+    // "types": [],
+    // 允许从模块访问UMD全局变量
+    // "allowUmdGlobalAccess": true,
+    // 解析模块时要搜索的文件名后缀列表
+    "moduleSuffixes": [],
+    // 启用导入.json文件
+    // "resolveJsonModule": true,
+    // 禁止使用 import、require 或 <reference> 来扩展TypeScript应该添加到项目中的文件数量
+    // "noResolve": true,
+
+    // JavaScript支持
+    // 允许编译器编译JS,JSX文件
+    // "allowJs": true,
+    // 允许在JS文件中报错
+    // "checkJs": true,
+    // 指定用于检查来自'node_modules'的JavaScript文件的最大文件夹深度
+    // "maxNodeModuleJsDepth": 1,
+
+
+    // 发行
+    // 生成声明文件,即.d.ts文件
+    "declaration": true,
+    // 为声明文件生成map文件
+    // "declarationMap": true,
+    // 只生成声明文件,不生成js文件
+    "emitDeclarationOnly": false,
+    // 生成目标文件的映射文件
+    "sourceMap": false,
+    // 将源映射与源文件一起写入单独的文件中
+    // "outFile": "./",
+    // 指定所有输出文件的目录
+    // "outDir": "./",
+    // 删除所有的注释
+    "removeComments": false,
+    // 不输出文件,只做类型检查
+    // "noEmit": true,
+    // 允许每个项目一次从tslib导入辅助函数，而不是每个文件包含它们
+    // "importHelpers": true,
+    // 为仅用于类型的导入指定发出/检查行为
+    // "importsNotUsedAsValues": "remove",
+    // 降级遍历器实现
+    "downlevelIteration": false,
+    // 为调试器指定查找参考源代码的根路径
+    // "sourceRoot": "",
+    // 指定调试器应该定位映射文件的位置,而不是生成的位置
+    // "mapRoot": "",
+    // 生成目标文件的映射文件
+    // "inlineSourceMap": true,
+    // 在发出的JavaScript中的源映射中包含源代码
+    // "inlineSources": true,
+    // 在输出文件的开头发出UTF-8字节顺序标记(BOM)
+    // "emitBOM": true,
+    // 设置输出文件的换行符
+    // "newLine": "crlf",
+    // 禁止在JSDoc注释中发出带有“@internal”的声明
+    // "stripInternal": true,
+    // 在编译后的输出中禁用生成自定义助手函数，如'__extends'
+    // "noEmitHelpers": true,
+    // 发生错误时不生成文件
+    // "noEmitOnError": true,
+    // 禁用在生成的代码中擦除'const enum'声明
+    // "preserveConstEnums": true,
+    // 指定声明文件的输出目录
+    "declarationDir": "./types",
+    // 在JavaScript输出中保留未使用的导入值，否则这些值将被删除
+    // "preserveValueImports": true,
+
+    // 互操作的约束
+    // 确保每个文件都可以安全地转译，而不依赖于其他导入
+    // "isolatedModules": true,
+    // 当模块没有默认导出时，允许 import x from y
+    // "allowSyntheticDefaultImports": true,
+    // 更改编译器行为,由帮助程序函数修复
+    "esModuleInterop": true,
+    // 禁用解析符号链接到它们的真实路径
+    // "preserveSymlinks": true,
+    // 强制使用文件名中的一致大小写
+    "forceConsistentCasingInFileNames": true,
+    // 类型检查
+    // 启用所有严格的类型检查选项
+    "strict": true,
+    // 不允许隐式的any类型
+    "noImplicitAny": true,
+    // 不允许把null,undefined赋值给任意类型
+    "strictNullChecks": true,
+    // 不允许函数参数的双向协变
+    "strictFunctionTypes": true,
+    // 严格的bind,call,apply检查
+    "strictBindCallApply": true,
+    // 类的实例属性必须初始化
+    "strictPropertyInitialization": false,
+    // 不允许this有隐式的any类型
+    "noImplicitThis": true,
+    // 默认catch子句变量为 unknown 而不是 any
+    // "useUnknownInCatchVariables": true,
+    // 在代码中注入严格模式头信息
+    "alwaysStrict": true,
+    // 检查只声明未使用的局部变量
+    "noUnusedLocals": true,
+    // 检查未使用的函数参数
+    "noUnusedParameters": true,
+    // 按编写方式解释可选属性类型，而不是添加 undefined
+    // "exactOptionalPropertyTypes": true,
+    // 为在函数中没有显式返回的代码路径启用错误报告
+    // "noImplicitReturns": true,
+    // 防止switch语句贯穿(即不允许switch语句中没有break)
+    "noFallthroughCasesInSwitch": true,
+    // 当使用索引访问时，向类型添加 undefined
+    // "noUncheckedIndexedAccess": true,
+    // 确保用重写修饰符标记派生类中的重写成员
+    // "noImplicitOverride": true,
+    // 强制对使用索引类型声明的键使用索引访问器
+    // "noPropertyAccessFromIndexSignature": true,
+    // 禁用未使用标签的错误报告
+    // "allowUnusedLabels": true,
+    // 禁用不可达代码的错误报告
+    // "allowUnreachableCode": true,
+
+    // 完整性
+    // 跳过类型检查。TypeScript中包含的ts文件
+    "skipDefaultLibCheck": false,
+    // 跳过所有的类型检查
+    "skipLibCheck": false
+  },
+  // 指定一个匹配列表,用于确定应该包含在编译中的文件
+  "include": [
+    "src/**/*"
+  ],
+  // 指定一个排除列表,用于确定应该排除在编译中的文件
+  "exclude": [
+  ],
+  // 指定那些文件使用该配置文件
+  "files": [
+  ]
+}
+```
+
 ### namespace 命名空间
 
 ```tsx
@@ -472,6 +825,17 @@ namespace A {
 }
 
 console.log(A.a);
+```
+
+### 声明文件
+
+```ts
+declare function fn<T>(a: T, b: T): Array<T>;
+
+type A<T> = string | T;
+declare let a: A<number>;
+
+declare function f<T extends number>(a: T, b: T): number;
 ```
 
 ### Mixins 混入
@@ -575,6 +939,25 @@ class Http {
 
 const http = new Http() as any;
 http.print();
+```
+
+```tsx
+// 方法装饰器
+const Get = (path: string) => {
+    const fn: MethodDecorator = (_0, _1, descriptor: PropertyDescriptor) => {
+        descriptor.value(path)
+    }
+    return fn;
+}
+
+class axios {
+    @Get('/api')
+    get(data: any) {
+        console.log(data)
+    }
+}
+
+const axios1 = new axios();
 ```
 
 ### 协变

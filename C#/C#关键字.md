@@ -542,7 +542,7 @@ using System;   //引入命名空间
 public virtual void Fun1()
 ```
 
-### void - 返回类型来指定该方法不返回值
+## void - 返回类型来指定该方法不返回值
 
 ```c#
 public static void Display(IEnumerable<int> numbers)

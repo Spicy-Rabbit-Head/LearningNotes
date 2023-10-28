@@ -606,7 +606,7 @@ public void text1() throws IOException {
     InputStream resource = Resources.getResourceAsStream("mybatis-config.xml");
     // 获得session工厂对象
     SqlSessionFactory sessionFactory = new SqlSessionFactoryBuilder().build(resource);
-    // 获得会话对象
+    // 获得会话对
     SqlSession sqlSession = sessionFactory.openSession();
     // 执行操作
     List<User> list = sqlSession.selectList("userMapper.selectAll");

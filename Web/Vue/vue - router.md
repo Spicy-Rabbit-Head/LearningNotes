@@ -360,7 +360,7 @@ router.beforeEach((to, from, next) => {
 export default router
 ```
 
-# 动画路由
+# 
 
 
 
