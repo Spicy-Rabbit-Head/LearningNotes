@@ -705,7 +705,7 @@ public static string staticTitle = "静态标题";
 >     <ResourceDictionary.MergedDictionaries>
 >         <ResourceDictionary Source="/Resources/BrushResources/SolidColorBrush.xaml"></ResourceDictionary>
 >     </ResourceDictionary.MergedDictionaries>
-> </ResourceDictionary>0
+> </ResourceDictionary>
 > ```
 
 #### 资源定义
@@ -863,7 +863,7 @@ private void ChangeToTopic2(object sender, RoutedEventArgs e)
 </Window>
 ```
 
-### 控件模板
+### 控件模板及触发器
 
 > WPF的ControlTemplate是一种用于定义和自定义控件的外观和结构的模板,它可以完全替换控件的默认模板,实现个性化和复杂的效果
 >
@@ -874,3 +874,138 @@ private void ChangeToTopic2(object sender, RoutedEventArgs e)
 > + ControlTemplate可以使用Triggers来定义控件对不同的条件或事件的响应,如改变属性、播放动画、执行操作等
 > + ControlTemplate可以使用ContentPresenter或ItemsPresenter来呈现控件的内容或子元素,从而保留控件的基本功能
 > + ControlTemplate可以在Style或ResourceDictionary中定义,并应用到一个或多个控件上,从而实现资源的重用和管理
+
+> WPF的Trigger是一种用于定义和管理XAML资源的触发器,它可以根据不同的条件或事件来改变控件的属性或行为。以下是触发器的类型：
+>
+> + 基本触发器(Trigger):这种触发器是根据控件自身的依赖属性的值来触发的,例如,当鼠标移动到按钮上时,改变按钮的背景色
+> + 数据触发器(DataTrigger):这种触发器是根据绑定的数据的值来触发的,例如,当绑定的数据为真时,显示一个图标
+> + 事件触发器(EventTrigger):这种触发器是根据控件的路由事件来触发的,例如,当按钮被点击时,播放一个动画
+> + 多条件触发器（MultiTrigger、MultiDataTrigger):这种触发器是根据多个条件的组合来触发的,例如,当控件的属性和绑定的数据同时满足某些值时,改变控件的样式
+
+```xaml
+<Application x:Class="StandardTest.App"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:local="clr-namespace:StandardTest"
+             StartupUri="MainWindow.xaml">
+    <Application.Resources>
+        <!-- Button 的控件模板 -->
+        <Style x:Key="ButtonTemplate" TargetType="{x:Type Button}">
+            <Setter Property="FontSize" Value="16"></Setter>
+            <Setter Property="FontFamily" Value="Microsoft YaHei"></Setter>
+            <Setter Property="Background" Value="Red"></Setter>
+            <!-- 编辑模板 -->
+            <!-- 被编辑的模板其默认值、绑定、触发器、样式、事件等都会被清空 -->
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="Button">
+                        <!-- 使用 TemplateBinding 或 Binding 来绑定模板中的属性 -->
+                        <Border Background="{TemplateBinding Background}"
+                                BorderBrush="{TemplateBinding BorderBrush}"
+                                CornerRadius="22">
+                            <ContentPresenter HorizontalAlignment="Center"
+                                              VerticalAlignment="Center" />
+                        </Border>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+            <!-- 编辑触发器 -->
+            <Style.Triggers>
+                <!-- 定义鼠标悬浮时的触发器 -->
+                <Trigger Property="IsMouseOver" Value="True">
+                    <Setter Property="Background" Value="Blue"></Setter>
+                    <Setter Property="Foreground" Value="Red"></Setter>
+                </Trigger>
+            </Style.Triggers>
+
+        </Style>
+    </Application.Resources>
+</Application>
+```
+
+```xaml
+<Window x:Class="StandardTest.MainWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:local="clr-namespace:StandardTest"
+        mc:Ignorable="d"
+        Title="主页" MinHeight="200" MaxHeight="200" MinWidth="200" MaxWidth="200">
+    <Grid ShowGridLines="True">
+        <Grid.RowDefinitions>
+            <RowDefinition></RowDefinition>
+            <RowDefinition></RowDefinition>
+        </Grid.RowDefinitions>
+        <!-- 绑定控件模板 -->
+        <Button Style="{StaticResource ButtonTemplate}">1</Button>
+        <Button Grid.Row="1">2</Button>
+    </Grid>
+</Window>
+```
+
+### 数据绑定
+
+#### 数据绑定模型
+
+> WPF中的Binding更多地是表达一种桥梁关系
+>
+> Binding对象的两端分别是源(Source)和目标(Target)
+>
+> ![image-20231102145607240](assets/image-20231102145607240.png)
+>
+> 通常情况下,每个绑定具有四个组件：
+>
+> + 绑定目标对象(Binding Target-Dependency Object)
+> + 目标属性(Dependency Property)
+> + 绑定源(Binding Source-Object)
+> + 指向绑定源中要使用的值的路径(Path-Property)
+
+##### 使源实现通知能力
+
+> 让数据源的类实现 INotifyPropertyChanged 接口,在属性的set块中激发一个 PropertyChanged 事件
+>
+> 当我们绑定到这个数据源上时,Binding 对象就会自动侦听来自这个接口的 PropertyChanged 事件
+>
+> ![image-20231102151742351](assets/image-20231102151742351.png)
+
+##### 实现绑定的后置代码
+> 实例化Binding对象,并设置源和路径,使用BindingOperations.SetBinding()实现数据源与目标链接,其三个参数为：目标对象、目标的依赖属性、Binding对象
+>
+> ![image-20231102151815554](assets/image-20231102151815554.png)
+>
+> 在实现数据绑定时,我们需要注意下面的要点：
+>
+> + 建立绑定需要使用Binding对象
+> + 在建立绑定时,需要设置源和路径,然后将绑定目标绑定到绑定源
+> + 目标属性必须为依赖属性
+> + 绑定源对象不限于自定义.NET对象
+
+##### 数据流的方向
+
+> 可以通过设置Binding.Mode来控制数据流：
+>
+> + OneWay:对源属性的更改会自动更新目标属性,但对目标属性的更改不会传播回源属性
+> + TwoWay:更改源属性或目标属性时会自动更新另一方,也就是双向数据绑定
+> + OneWayToSource:当目标属性更改时,它会更新源属性,反之则不会
+> + OneTime:会使源属性初始化目标属性,但不传播后续更改
+>
+> ![image-20231102152446792](assets/image-20231102152446792.png)
+
+##### 触发源更新的因素
+
+|       UpdateSourceTrigger值       |       源值更新时间       |
+| :-------------------------------: | :----------------------: |
+| LostFocus( TextBox.Text 的默认值) |  TextBox 控件失去焦点时  |
+|          PropertyChanged          |     键入 TextBox 时      |
+|             Explicit              | 应用调用 UpdateSource 时 |
+
+![image-20231102165027726](assets/image-20231102165027726.png)
+
+#### Binding源的指定
+
+> 一个对象只要通过属性公开自己的数据,就可以作为Binding的源
+>
+> 作为 Binding 源的对象需要实现 INotifyPropertyChanged 接口并激发 PropertyChanged? 事件才能使属性具有自动通知 Binding 发生了变化的能力
+>
+> 除了使用自定义类作为源以外,还有其他不同的形式
