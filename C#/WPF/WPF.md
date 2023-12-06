@@ -968,6 +968,52 @@ private void ChangeToTopic2(object sender, RoutedEventArgs e)
 > 当我们绑定到这个数据源上时,Binding 对象就会自动侦听来自这个接口的 PropertyChanged 事件
 >
 > ![image-20231102151742351](assets/image-20231102151742351.png)
+>
+> 封装 PropertyChanged 数据通知
+>
+> ```c#
+> using System.Collections.Generic;
+> using System.ComponentModel;
+> using System.Runtime.CompilerServices;
+> 
+> namespace StandardTest.Tools;
+> 
+> /// <summary>
+> /// 可观察对象
+> /// </summary>
+> public class ObservableObject : INotifyPropertyChanged
+> {
+>     /// <summary>
+>     /// 属性改变事件
+>     /// </summary>
+>     public event PropertyChangedEventHandler? PropertyChanged;
+> 
+>     /// <summary>
+>     /// 属性改变事件
+>     /// </summary>
+>     /// <param name="propertyName">属性名称</param>
+>     private void OnPropertyChanged([CallerMemberName] string? propertyName = null)
+>     {
+>         PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
+>     }
+> 
+>     /// <summary>
+>     /// 设置字段
+>     /// </summary>
+>     /// <param name="field">字段</param>
+>     /// <param name="value">值</param>
+>     /// <param name="propertyName">属性名称</param>
+>     /// <typeparam name="T">类型</typeparam>
+>     /// <returns>是否设置成功</returns>
+>     protected bool SetField<T>(ref T field, T value, [CallerMemberName] string? propertyName = null)
+>     {
+>         if (EqualityComparer<T>.Default.Equals(field, value)) return false;
+>         field = value;
+>         OnPropertyChanged(propertyName);
+>         return true;
+>     }
+> }
+> ```
 
 ##### 实现绑定的后置代码
 > 实例化Binding对象,并设置源和路径,使用BindingOperations.SetBinding()实现数据源与目标链接,其三个参数为：目标对象、目标的依赖属性、Binding对象
@@ -994,7 +1040,7 @@ private void ChangeToTopic2(object sender, RoutedEventArgs e)
 
 ##### 触发源更新的因素
 
-|       UpdateSourceTrigger值       |       源值更新时间       |
+|           更新源触发器            |       源值更新时间       |
 | :-------------------------------: | :----------------------: |
 | LostFocus( TextBox.Text 的默认值) |  TextBox 控件失去焦点时  |
 |          PropertyChanged          |     键入 TextBox 时      |
@@ -1009,3 +1055,344 @@ private void ChangeToTopic2(object sender, RoutedEventArgs e)
 > 作为 Binding 源的对象需要实现 INotifyPropertyChanged 接口并激发 PropertyChanged? 事件才能使属性具有自动通知 Binding 发生了变化的能力
 >
 > 除了使用自定义类作为源以外,还有其他不同的形式
+
+##### 将控件作为源
+
+```xaml
+<StackPanel>
+    <!-- 绑定滑动条的值 -->
+    <!-- Path 指定绑定的属性 -->
+    <TextBox BorderBrush="BLack" Text="{Binding Path=Value,ElementName=Slider}" />
+    <!-- 被绑定的滑动条 -->
+    <Slider x:Name="Slider" Minimum="0" Maximum="100" Margin="10" />
+    <!-- 反过来绑定 -->
+    <TextBox x:Name="TextBox" BorderBrush="Black"></TextBox>
+    <Slider Minimum="0" Maximum="100" Margin="10" Value="{Binding Path=Text,ElementName=TextBox}" />
+</StackPanel>
+```
+
+##### DataContext 作为源
+
+> DataContext是数据上下文,它用于将数据模型与UI元素进行绑定
+>
+> 每个U元素都有一个DataContext属性,它指定了该元素的数据模型当我们使用DataContextf作为数据源时,它会自动将UI元素的数据源设置为当前窗口或用户控件的DataContext属性
+>
+> 所以在XAML文件中使用{Binding}语法来绑定时而无需指定任何其他源,因此这种形式也称作无源数据绑定
+
+```c#
+// 数据类
+public class Employee
+{
+    public string? Name { get; set; }
+}
+```
+
++ 视图声明
+
+```xaml
+<Window.DataContext>
+    <!-- 在视图中声明数据上下文 -->
+    <local:Employee Name="小红"></local:Employee>
+</Window.DataContext>
+<StackPanel>
+    <!-- 绑定数据 -->
+    <TextBox Text="{Binding Path=Name}"></TextBox>
+</StackPanel>
+```
+
+```c#
+public partial class MainWindow : Window
+{
+    public MainWindow()
+    {
+        InitializeComponent();
+    }
+
+    private void Button_Click(object sender, RoutedEventArgs e)
+    {
+        // 读取数据上下文
+        var employee = (Employee)DataContext;
+        Console.WriteLine(employee.Name);
+    }
+}
+```
+
++ 后置声明
+
+```xaml
+<StackPanel>
+    <!-- 绑定数据 -->
+    <TextBox Text="{Binding Path=Name}"></TextBox>
+    <!-- 触发后置输出 -->
+    <Button Content="输出" Click="Button_Click"></Button>
+</StackPanel>
+```
+
+```c#
+public partial class MainWindow : Window
+{
+    private readonly Employee employee = new() { Name = "小白" };
+
+    public MainWindow()
+    {
+        InitializeComponent();
+        DataContext = employee;
+    }
+
+    private void Button_Click(object sender, RoutedEventArgs e)
+    {
+        // 输出数据上下文的值
+        Console.WriteLine(employee.Name);
+    }
+}
+```
+
+> **属性值向下传递**
+> 在Binding通过元素树向根结点处方向寻找DataContext的现象,其实只是一种描述效果
+>
+> 真正的过程其实是结点上的属性值向下传递了,这是因为DataContext,是一个依赖属性,而依赖属性有一个特性,当你没有为控件的某个属性显式地赋值时,它就会把自己所在容器的属性值拿过来,当作自己的属性值
+
+##### 将集合对象作为列表控件的源
+
+![image-20231206164117315](assets/image-20231206164117315.png)
+
+```xaml
+<StackPanel>
+    <TextBlock>当前选择的年龄为:</TextBlock>
+    <TextBox x:Name="AgeText"></TextBox>
+    <!-- 选择列表项会将选中的对象属性绑定给上面 -->
+    <TextBlock>列表项:</TextBlock>
+    <ListBox x:Name="ListBox"></ListBox>
+</StackPanel>
+```
+
+```c#
+// 没有通知能力
+public partial class MainWindow : Window
+{
+    public MainWindow()
+    {
+        InitializeComponent();
+        List<Employee> employees = new List<Employee>()
+        {
+            new() { Username = "小白", Age = 23 },
+            new() { Username = "小黑", Age = 24 },
+            new() { Username = "小红", Age = 25 },
+        };
+        // 指定条目控件的源和路径来实现绑定
+        ListBox.ItemsSource = employees;
+        ListBox.DisplayMemberPath = "Username";
+        // 使用后置代码实现控件间绑定
+        Binding binding = new Binding("SelectedItem.Age") { Source = ListBox };
+        AgeText.SetBinding(TextBox.TextProperty, binding);
+    }
+}
+// 有通知能力
+public partial class MainWindow : Window
+{
+    /**
+     *  ObservableCollection 实现了  INotifyCollectionChanged,INotifyPropertyChanged
+     *  在集合更新时通知视图
+     */
+    private readonly ObservableCollection<Employee> employees;
+
+    public MainWindow()
+    {
+        InitializeComponent();
+        employees = new ObservableCollection<Employee>()
+        {
+            new() { Username = "小白", Age = 23 },
+            new() { Username = "小黑", Age = 24 },
+            new() { Username = "小红", Age = 25 },
+        };
+        // 指定条目控件的源和路径来实现绑定
+        ListBox.ItemsSource = employees;
+        ListBox.DisplayMemberPath = "Username";
+        // 使用后置代码实现控件间绑定
+        Binding binding = new Binding("SelectedItem.Age") { Source = ListBox };
+        AgeText.SetBinding(TextBox.TextProperty, binding);
+    }
+
+    private void ButtonBase_OnClick(object sender, RoutedEventArgs e)
+    {
+        // 添加
+        employees.Add(new Employee() { Username = "小绿", Age = 21 });
+    }
+}
+```
+
+##### ADO.NET 对象作为源
+
+> 在.NET项目开发时,我们使用ADO.NET类对数据进行操作
+>
+> 常见的形式是从数据库把数据读到 DataTable 中,再把 DataTable 展示在Ul列表控件里
+>
+> 在实际的项目中,我们一般会先把 DataTable 转换为自定义的集合类型,不过WPF的 Binding 仍然也会支持列表控件直接与 DataTable 之间直接建立 Binding
+
+##### 使用 DataSourceProvider 类的子类成员作为源
+
+> DataSourceProvider 类是一个抽象基类,它定义了一些公共属性和方法,用来执行某些查询,生成可以用作绑定源的单个对象或对象列表
+>
+> DataSourceProvider 类支持标准的Windows窗体数据绑定模型,可以处理不同类型的数据源,例如SQL数据库,XML文档,数组集合等
+>
+> DataSourceProvider 类还实现了 INotifyPropertyChanged 和 ISupportInitialize 接口,用来提供对绑定和初始化的支持
+
+##### XmlDataProvider
+
+> XML是一种可扩展标记语言,它可以用来存储和传输数据
+>
+> XML的特点是它可以自定义标签,用来描述数据的结构和含义
+>
+> XML可以与其他技术一起使用来处理和转换数据
+>
+> XML也可以用作配置文件,元数据,富文档等
+>
+> .NET提供了DOM (Document Object Model) 文档对象模型类库用于处理XML数据,包括KmlDoucument、XmlElement等类,是传统的、功能强大的类库
+
+```xml
+<?xml version="1.0" encoding="utf-8"?>
+<!--xml测试数据-->
+<GoondsList>
+    <Goods Id="1">
+        <Name>小白</Name>
+        <Age>21</Age>
+    </Goods>
+    <Goods Id="2">
+        <Name>小绿</Name>
+        <Age>22</Age>
+    </Goods>
+    <Goods Id="3">
+        <Name>小红</Name>
+        <Age>23</Age>
+    </Goods>
+</GoondsList>
+```
+
+```xaml
+<StackPanel>
+    <ListView x:Name="List">
+        <ListView.View>
+            <GridView>
+                <!-- 每一列都绑定xml的一个属性 -->
+                <GridViewColumn Header="Id" Width="100" DisplayMemberBinding="{Binding XPath=@Id}" />
+                <GridViewColumn Header="Name" Width="100" DisplayMemberBinding="{Binding XPath=Name}" />
+                <GridViewColumn Header="Age" Width="100" DisplayMemberBinding="{Binding XPath=Age}" />
+            </GridView>
+        </ListView.View>
+    </ListView>
+</StackPanel>
+```
+
+```c#
+public partial class MainWindow : Window
+{
+    public MainWindow()
+    {
+        InitializeComponent();
+
+        // XmLDataProvider用于支持对 xml 数据的访问,以便于数据绑定
+        var xmlProvider = new XmlDataProvider
+        {
+            // xml 地址
+            Source = new Uri(@"D:\.work_documents\Syncdisk\ProjectCode\C#\EquipmentRandomTesting\Goods.xml"),
+            // 数据路径
+            XPath = "/GoodsList/Goods"
+        };
+        // 设置数据上下文
+        List.DataContext = xmlProvider;
+        // 绑定属性
+        List.SetBinding(ListView.ItemsSourceProperty, new Binding());
+    }
+}
+```
+
+##### ObjectDataProvider
+
+> ObjectDataProvider 能够将对象进行包装,作为数据源提供给Binding
+>
+> 被包装的对象作为 ObjectDataProvider 的Objectlnstance 属性,我们可以通过 MethodName 属性来指明要调用的方法,使用 MethodParameters 属性来传入参数,其是一个集合,因此可以使用下标形式指定和访问
+>
+> 运行方法的结果会保存在 Data 属性中。
+>
+> ![image-20231206214830337](C:\Users\zhao'zi'kui\AppData\Roaming\Typora\typora-user-images\image-20231206214830337.png)
+
+```c#
+/// <summary>
+/// 计算类
+/// </summary>
+public class Calculator
+{
+    public string Add(string para1, string para2)
+    {
+        if (double.TryParse(para1, out var arg1) && double.TryParse(para2, out var arg2))
+        {
+            var outcome = arg1 + arg2;
+            return outcome.ToString(CultureInfo.InvariantCulture);
+        }
+
+        return "非法输入";
+    }
+}
+```
+
+```xaml
+<StackPanel>
+    <!-- 输入控件 -->
+    <TextBox x:Name="TextBox1"></TextBox>
+    <TextBox x:Name="TextBox2"></TextBox>
+    <!-- 触发包装对象方法 -->
+    <Button Content="相加" Click="ButtonBase_OnClick"></Button>
+    <!-- 输出包装对象值 -->
+    <TextBox x:Name="OutText"></TextBox>
+</StackPanel>
+```
+
+```c#
+public partial class MainWindow : Window
+{
+    private ObjectDataProvider objectDataProvider;
+
+    public MainWindow()
+    {
+        InitializeComponent();
+        SetBinding();
+    }
+
+    private void SetBinding()
+    {
+        // 实例化
+        objectDataProvider = new ObjectDataProvider
+        {
+            // 实例化包装对象
+            ObjectInstance = new Calculator(),
+            // 设置要调用的方法
+            MethodName = "Add",
+            // 要传入的参数占位
+            MethodParameters = { "0", "0" }
+        };
+        // 设定输入绑定,指定绑定到第几个占位
+        Binding bindingPara1 = new Binding("MethodParameters[0]")
+        {
+            Source = objectDataProvider,
+            Mode = BindingMode.OneWayToSource,
+            BindsDirectlyToSource = true
+        };
+        Binding bindingPara2 = new Binding("MethodParameters[1]")
+        {
+            Source = objectDataProvider,
+            Mode = BindingMode.OneWayToSource,
+            BindsDirectlyToSource = true
+        };
+        TextBox1.SetBinding(TextBox.TextProperty, bindingPara1);
+        TextBox2.SetBinding(TextBox.TextProperty, bindingPara2);
+    }
+
+    // 触发
+    private void ButtonBase_OnClick(object sender, RoutedEventArgs e)
+    {
+        // 读取包装对象数据
+        OutText.Text = objectDataProvider.Data.ToString();
+    }
+}
+```
+
