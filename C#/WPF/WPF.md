@@ -1314,7 +1314,7 @@ public partial class MainWindow : Window
 >
 > 运行方法的结果会保存在 Data 属性中。
 >
-> ![image-20231206214830337](C:\Users\zhao'zi'kui\AppData\Roaming\Typora\typora-user-images\image-20231206214830337.png)
+> ![image-20231207083428469](assets/image-20231207083428469.png)
 
 ```c#
 /// <summary>
@@ -1396,3 +1396,404 @@ public partial class MainWindow : Window
 }
 ```
 
+> 我们通常把数据的来源定为 Binding 的 Source,去往哪里定为 Target
+>
+> - 非依赖属性不能作为 Binding 的目标
+> - 数据驱动的理念要求应尽可能选择数据对象作为源,UI元素作为目标
+
+##### LINQ 查询结果作为源
+
+> LNQ的查询结果是可以作为数据绑定的数据源的,这是因为其查询结果是一个 IEnumerable<T> 对象,所以可以作为列表控件的 ltemSource 来使用
+
+```xaml
+<StackPanel>
+    <ListView x:Name="View">
+        <ListView.View>
+            <GridView>
+                <GridViewColumn Header="Name" DisplayMemberBinding="{Binding Name}"></GridViewColumn>
+                <GridViewColumn Header="Name" DisplayMemberBinding="{Binding Age}"></GridViewColumn>
+            </GridView>
+        </ListView.View>
+    </ListView>
+</StackPanel>
+```
+
+```c#
+public partial class MainWindow : Window
+{
+    public MainWindow()
+    {
+        InitializeComponent();
+        List<Employee> employees = new List<Employee>()
+        {
+            new() { Name = "John", Age = 25 },
+            new() { Name = "Mary", Age = 30 },
+            new() { Name = "Peter", Age = 35 },
+        };
+        // LINQ 语法查询结果绑定源
+        View.ItemsSource = from v in employees where v.Age > 25 select v;
+    }
+}
+```
+
+##### RelativeSource
+
+> 当我们不能确定源对象的名称,但是能知道其与目标对象在U儿布局上有层级关系时,可以使用 RelativeSource 属性
+>
+> RelativeSource 属性数据类型为 RelativeSource 类,其 Mode 属性的类型是 RelativeSourceMode 枚举,其取值有 PreviousData 、TemplateParent 、Self 和 FindAncestor
+>
+> 对于前三个枚举值还有同名的静态属性,它们的类型是 RelativeSource 类
+>
+> ---
+>
+> - PreviousData 绑定到集合中当前项的前一项的数据
+> - TemplateParent 绑定到应用了控件模板的控件的属性
+> - Self 绑定到绑定目标本身的属性
+> - FindAncestor 绑定到绑定目标的某个祖先元素（结点或根元素）的属性
+
+```xaml
+<DockPanel Background="Aquamarine">
+    <Grid Background="Bisque" Margin="10">
+        <DockPanel Background="Pink" Margin="10">
+            <Grid Background="Coral" Margin="10">
+                <!-- 将背景颜色绑定到父级的属性 -->
+                <!-- Mode 指定查找模式,这里是查找祖先元素 -->
+                <!-- AncestorType 指定查找的祖先元素类型 -->
+                <!-- AncestorLevel 指定查找的祖先元素层级 -->
+                <TextBox
+                    Background="{Binding RelativeSource={
+                    RelativeSource Mode=FindAncestor,
+                    AncestorType={x:Type DockPanel},
+                    AncestorLevel=2},Path=Background}">
+                </TextBox>
+            </Grid>
+        </DockPanel>
+    </Grid>
+</DockPanel>
+```
+
+#### Binding 路径的指定
+
+> - Binding 支持多级路径
+> - 无需指定路径时,在XAML代码中绑定时可以省略不写,但在C#代码中需要使用 . 代替
+
+#### 数据校验与数据转换
+
+> 若在数据传输的过程中,需要对数据进行限制,可以在 Binding 上设置数据校验
+>
+> 若要对数据类型进行转换,可以在 Binding 上设置数据转换,编写数据转换器
+>
+> WPF在 Binding 上提供了 Validation 进行校验, Converter 进行转换
+
+##### 数据校验
+
+> Binding 用于数据校验的属性是 ValidationRules ,在WPF中,要实现 Binding 的数据校验,需要以下几个步骤：
+>
+> - 定义一个继承自 ValidationRule 的类,重写其 Validate 方法,根据自己的逻辑和条件,返回一个 ValidationResult 对象,表示数据是否有效,以及无效时的错误信息
+> - 在Binding对象中添加一个或多个 ValidationRule 对象,表示要对数据应用哪些校验规则
+> - 可以设置 ValidationRule s属性的 ValidatesOnTargetUpdated 属性为 true,表示要在目标更新时也进行校验
+> - 在 Binding 对象中设置 NotifyOnValidationError 属性为true,表示当数据校验失败时,要通知绑定目标或其祖先元素
+> - 编写校验失败时执行的事件处理器（方法）,获取事件参数,获取错误信息,编写显示错误信息的代码或其它执行内容
+> - 在目标或祖先元素上添加一个事件处理器,用于处理 Validation.ErrorEvent 事件,传入委托并指定方法
+>
+> ---
+>
+> 简化如下:
+>
+> - 编写校验规则类
+> - 为Binding添加校验规则
+> - 打开校验通知开关
+> - 编写校验失败事件处理器
+> - 处理校验失败事件
+
+```xaml
+<StackPanel Background="LightBlue">
+    <TextBox x:Name="Box1"></TextBox>
+    <TextBox x:Name="Box2"></TextBox>
+    <Button Content="触发校验" Click="ButtonBase_OnClick"></Button>
+    <Label Content="结果:"></Label>
+    <TextBlock x:Name="Block"></TextBlock>
+</StackPanel>
+```
+
+```c#
+/// <summary>
+/// 计算类
+/// </summary>
+public class Calculator
+{
+    public string Divide(string para1, string para2)
+    {
+        if (double.TryParse(para1, out var arg1) && double.TryParse(para2, out var arg2))
+        {
+            var outcome = arg1 / arg2;
+            return outcome.ToString(CultureInfo.InvariantCulture);
+        }
+
+        return "非法输入";
+    }
+}
+```
+
+```c#
+/// <summary>
+/// 校验规则类
+/// </summary>
+public class ParasCheck : ValidationRule
+{
+    public override ValidationResult Validate(object? value, CultureInfo cultureInfo)
+    {
+        // 判断是否为0
+        if (double.TryParse(value?.ToString(), out var num))
+        {
+            if (num == 0)
+            {
+                // 校验异常返回校验结果和异常信息
+                return new ValidationResult(false, "除数不能为0");
+            }
+        }
+
+        // 检验没问题返回正常
+        return ValidationResult.ValidResult;
+    }
+}
+```
+
+```c#
+public partial class MainWindow : Window
+{
+    private ObjectDataProvider odp;
+
+    public MainWindow()
+    {
+        InitializeComponent();
+        SetBinding();
+    }
+
+    private void SetBinding()
+    {
+        // 包装Calculator类
+        odp = new ObjectDataProvider
+        {
+            ObjectInstance = new Calculator(),
+            MethodName = "Divide",
+            MethodParameters = { "0", "0" },
+        };
+        // 绑定到TextBox
+        Binding binding1 = new Binding("MethodParameters[0]")
+        {
+            Source = odp,
+            Mode = BindingMode.OneWayToSource,
+            BindsDirectlyToSource = true,
+        };
+        Binding binding2 = new Binding("MethodParameters[1]")
+        {
+            Source = odp,
+            Mode = BindingMode.OneWayToSource,
+            BindsDirectlyToSource = true,
+            UpdateSourceTrigger = UpdateSourceTrigger.Explicit
+        };
+        // 实例化校验规则对象
+        var psc = new ParasCheck
+        {
+            // 设定在更新源时也进行校验
+            ValidatesOnTargetUpdated = true
+        };
+        // 添加校验规则
+        binding2.ValidationRules.Add(psc);
+        // 启用校验失败时的通知能力
+        binding2.NotifyOnValidationError = true;
+        // 添加校事件处理器
+        Box2.AddHandler(Validation.ErrorEvent, new RoutedEventHandler(OnError));
+
+        // 绑定源
+        Box1.SetBinding(TextBox.TextProperty, binding1);
+        Box2.SetBinding(TextBox.TextProperty, binding2);
+    }
+
+    // 触发校验
+    private void ButtonBase_OnClick(object sender, RoutedEventArgs e)
+    {
+        // 获取绑定表达式
+        var boxEx = Box2.GetBindingExpression(TextBox.TextProperty);
+        // 更新源
+        boxEx?.UpdateSource();
+        // 如果校验通过
+        if (!Validation.GetHasError(Box2))
+        {
+            Block.Text = odp.Data.ToString();
+        }
+    }
+
+    // 监听校验失败事件
+    private void OnError(object sender, RoutedEventArgs e)
+    {
+        // 获取校验失败事件参数
+        var args = e as ValidationErrorEventArgs;
+        // 获取错误信息
+        var error = args?.Error.ErrorContent.ToString();
+        // 处理错误
+        Block.Text = error;
+    }
+}
+```
+
+> ![image-20231207101726933](assets/image-20231207101726933.png)
+>
+> 使用WPF数据检验可以提高代码的质量和效率,增强用户体验和交互性
+>
+> - WPF数据检验将校验功能独立出来,可以将验证逻辑和视图逻辑分离,使得代码更加清晰和可维护
+> - 利用 Binding 对象的各种属性和事件,实现数据的自动更新和错误的通知
+> - 数据检验可以使用不同的验证规则,实现不同的验证需求,使用预定好的类来编写验证功能更加规范和方便,也可以为一个绑定添加多个规则,实现重用
+> - WPF数据检验可以使用 ErrorTemplate 属性,实现对验证失败时的视觉反馈,例如显示红色的感叹号或边框等
+
+##### 数据转换
+
+> WPF提供了两种数据转换的方式：
+>
+> > 值转换器方法(Converter),绑定后,触发转换器,转换器负责把值转换成需要的内容,转换器需要实现 System.Vindows.Data 命名空间的 IValueConverter 接口或 IMultiValueConverter 接口,分别用于单值转换和多值转换
+> >
+> > 转换器可以在XAML中定义为资源,并在绑定中引用
+>
+> >DataTrigger方法，直接在XAML里面对数据进行处理，展示所需要的内容
+> >
+> >DataTrigger 可以根据绑定的数据的值或条件来改变控件的属性或样式
+> >
+> >DataTrigger 可以在 Style 或 ControlTemplate 中定义
+
++ Converter
+
+> ```c#
+> /// <summary>
+> /// 数据转换类
+> /// </summary>
+> public class ShowConversion : IValueConverter
+> {
+>     // 用于将数据从源绑定转换为目标绑定时调用
+>     public object Convert(object value, Type targetType, object parameter, CultureInfo culture)
+>     {
+>         // 将 bool 转换为 Visibility 枚举
+>         return value is true ? Visibility.Visible : Visibility.Collapsed;
+>     }
+> 
+>     // 用于将数据从目标绑定转换为源绑定时调用
+>     public object ConvertBack(object value, Type targetType, object parameter, CultureInfo culture)
+>     {
+>         throw new NotImplementedException();
+>     }
+> }
+> ```
+>
+> ```xaml
+> <Window.Resources>
+>     <!-- 声明转换器资源 -->
+>     <local:ShowConversion x:Key="ShowConversion"></local:ShowConversion>
+> </Window.Resources>
+> <StackPanel Background="LightBlue">
+>     <StackPanel Orientation="Horizontal">
+>         <RadioButton Content="Add" IsChecked="{Binding AddIsVisible}"></RadioButton>
+>         <RadioButton Content="Divide" IsChecked="{Binding DivideIsVisible}"></RadioButton>
+>     </StackPanel>
+>     <StackPanel Orientation="Horizontal">
+>         <!-- 绑定对应的标志位及转换器 -->
+>         <Button Content="Add" Visibility="{Binding AddIsVisible,Converter={StaticResource ShowConversion}}">
+>         </Button>
+>         <Button Content="Divide" Visibility="{Binding DivideIsVisible,Converter={StaticResource ShowConversion}}">
+>         </Button>
+>     </StackPanel>
+> </StackPanel>
+> ```
+>
+> ```c#
+> public partial class MainWindow : Window
+> {
+>     private readonly ButtonVisible buttonVisible = new();
+> 
+>     public MainWindow()
+>     {
+>         InitializeComponent();
+>         DataContext = buttonVisible;
+>         buttonVisible.AddIsVisible = true;
+>         buttonVisible.DivideIsVisible = false;
+>     }
+> }
+> ```
+>
+> ```c#
+> /// <summary>
+> /// 按钮可见性
+> /// </summary>
+> public class ButtonVisible : ObservableObject
+> {
+>     private bool addIsVisible;
+> 
+>     public bool AddIsVisible
+>     {
+>         get => addIsVisible;
+>         set
+>         {
+>             SetField(ref addIsVisible, value);
+>             if (value)
+>             {
+>                 DivideIsVisible = false;
+>             }
+>         }
+>     }
+> 
+>     private bool divideIsVisible;
+> 
+>     public bool DivideIsVisible
+>     {
+>         get => divideIsVisible;
+>         set
+>         {
+>             SetField(ref divideIsVisible, value);
+>             if (value)
+>             {
+>                 AddIsVisible = false;
+>             }
+>         }
+>     }
+> }
+> ```
+
++ DataTrigger
+
+> ```xaml
+> <Window.Resources>
+>     <!-- DataTrigger式 -->
+>     <Style x:Key="AddButton" TargetType="Button">
+>         <!-- 设置按钮默认不可见 -->
+>         <Setter Property="Visibility" Value="Collapsed"></Setter>
+>         <!-- 设置触发器 -->
+>         <Style.Triggers>
+>             <DataTrigger Binding="{Binding IsChecked,ElementName=Add}" Value="true">
+>                 <Setter Property="Visibility" Value="Visible"></Setter>
+>             </DataTrigger>
+>         </Style.Triggers>
+>     </Style>
+>     <Style x:Key="DivButton" TargetType="Button">
+>         <!-- 设置按钮默认不可见 -->
+>         <Setter Property="Visibility" Value="Collapsed"></Setter>
+>         <!-- 设置触发器 -->
+>         <Style.Triggers>
+>             <DataTrigger Binding="{Binding IsChecked,ElementName=Divide}" Value="true">
+>                 <Setter Property="Visibility" Value="Visible"></Setter>
+>             </DataTrigger>
+>         </Style.Triggers>
+>     </Style>
+> </Window.Resources>
+> <StackPanel Background="LightBlue">
+>     <StackPanel Orientation="Horizontal">
+>         <RadioButton x:Name="Add" Content="Add" IsChecked="{Binding AddIsVisible}"></RadioButton>
+>         <RadioButton x:Name="Divide" Content="Divide" IsChecked="{Binding DivideIsVisible}"></RadioButton>
+>     </StackPanel>
+>     <StackPanel Orientation="Horizontal">
+>         <!-- 绑定对应的标志位及转换器 -->
+>         <Button Content="Add" Style="{StaticResource AddButton}">
+>         </Button>
+>         <Button Content="Divide" Style="{StaticResource DivButton}">
+>         </Button>
+>     </StackPanel>
+> </StackPanel>
+> ```
