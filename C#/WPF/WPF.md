@@ -591,7 +591,7 @@ public class FeedbackButton : Button
 > 比如将按钮的背景颜色清空
 >
 > ```xaml
-> <Button Content="Cancel"Background="{x:Null}"/>
+> <Button Content="Cancel" Background="{x:Null}"/>
 > ```
 
 ##### x:Static
@@ -944,9 +944,9 @@ private void ChangeToTopic2(object sender, RoutedEventArgs e)
 </Window>
 ```
 
-### 数据绑定
+# 数据绑定
 
-#### 数据绑定模型
+### 数据绑定模型
 
 > WPF中的Binding更多地是表达一种桥梁关系
 >
@@ -961,7 +961,7 @@ private void ChangeToTopic2(object sender, RoutedEventArgs e)
 > + 绑定源(Binding Source-Object)
 > + 指向绑定源中要使用的值的路径(Path-Property)
 
-##### 使源实现通知能力
+#### 使源实现通知能力
 
 > 让数据源的类实现 INotifyPropertyChanged 接口,在属性的set块中激发一个 PropertyChanged 事件
 >
@@ -1015,7 +1015,8 @@ private void ChangeToTopic2(object sender, RoutedEventArgs e)
 > }
 > ```
 
-##### 实现绑定的后置代码
+#### 实现绑定的后置代码
+
 > 实例化Binding对象,并设置源和路径,使用BindingOperations.SetBinding()实现数据源与目标链接,其三个参数为：目标对象、目标的依赖属性、Binding对象
 >
 > ![image-20231102151815554](assets/image-20231102151815554.png)
@@ -1027,7 +1028,7 @@ private void ChangeToTopic2(object sender, RoutedEventArgs e)
 > + 目标属性必须为依赖属性
 > + 绑定源对象不限于自定义.NET对象
 
-##### 数据流的方向
+#### 数据流的方向
 
 > 可以通过设置Binding.Mode来控制数据流：
 >
@@ -1038,7 +1039,7 @@ private void ChangeToTopic2(object sender, RoutedEventArgs e)
 >
 > ![image-20231102152446792](assets/image-20231102152446792.png)
 
-##### 触发源更新的因素
+#### 触发源更新的因素
 
 |           更新源触发器            |       源值更新时间       |
 | :-------------------------------: | :----------------------: |
@@ -1048,7 +1049,7 @@ private void ChangeToTopic2(object sender, RoutedEventArgs e)
 
 ![image-20231102165027726](assets/image-20231102165027726.png)
 
-#### Binding源的指定
+### Binding源的指定
 
 > 一个对象只要通过属性公开自己的数据,就可以作为Binding的源
 >
@@ -1056,7 +1057,7 @@ private void ChangeToTopic2(object sender, RoutedEventArgs e)
 >
 > 除了使用自定义类作为源以外,还有其他不同的形式
 
-##### 将控件作为源
+#### 将控件作为源
 
 ```xaml
 <StackPanel>
@@ -1071,7 +1072,7 @@ private void ChangeToTopic2(object sender, RoutedEventArgs e)
 </StackPanel>
 ```
 
-##### DataContext 作为源
+#### DataContext 作为源
 
 > DataContext是数据上下文,它用于将数据模型与UI元素进行绑定
 >
@@ -1152,7 +1153,7 @@ public partial class MainWindow : Window
 >
 > 真正的过程其实是结点上的属性值向下传递了,这是因为DataContext,是一个依赖属性,而依赖属性有一个特性,当你没有为控件的某个属性显式地赋值时,它就会把自己所在容器的属性值拿过来,当作自己的属性值
 
-##### 将集合对象作为列表控件的源
+#### 将集合对象作为列表控件的源
 
 ![image-20231206164117315](assets/image-20231206164117315.png)
 
@@ -1221,7 +1222,7 @@ public partial class MainWindow : Window
 }
 ```
 
-##### ADO.NET 对象作为源
+#### ADO.NET 对象作为源
 
 > 在.NET项目开发时,我们使用ADO.NET类对数据进行操作
 >
@@ -1229,7 +1230,7 @@ public partial class MainWindow : Window
 >
 > 在实际的项目中,我们一般会先把 DataTable 转换为自定义的集合类型,不过WPF的 Binding 仍然也会支持列表控件直接与 DataTable 之间直接建立 Binding
 
-##### 使用 DataSourceProvider 类的子类成员作为源
+#### 使用 DataSourceProvider 类的子类成员作为源
 
 > DataSourceProvider 类是一个抽象基类,它定义了一些公共属性和方法,用来执行某些查询,生成可以用作绑定源的单个对象或对象列表
 >
@@ -1401,7 +1402,7 @@ public partial class MainWindow : Window
 > - 非依赖属性不能作为 Binding 的目标
 > - 数据驱动的理念要求应尽可能选择数据对象作为源,UI元素作为目标
 
-##### LINQ 查询结果作为源
+#### LINQ 查询结果作为源
 
 > LNQ的查询结果是可以作为数据绑定的数据源的,这是因为其查询结果是一个 IEnumerable<T> 对象,所以可以作为列表控件的 ltemSource 来使用
 
@@ -1436,7 +1437,7 @@ public partial class MainWindow : Window
 }
 ```
 
-##### RelativeSource
+#### RelativeSource
 
 > 当我们不能确定源对象的名称,但是能知道其与目标对象在U儿布局上有层级关系时,可以使用 RelativeSource 属性
 >
@@ -1472,12 +1473,12 @@ public partial class MainWindow : Window
 </DockPanel>
 ```
 
-#### Binding 路径的指定
+### Binding 路径的指定
 
 > - Binding 支持多级路径
 > - 无需指定路径时,在XAML代码中绑定时可以省略不写,但在C#代码中需要使用 . 代替
 
-#### 数据校验与数据转换
+### 数据校验与数据转换
 
 > 若在数据传输的过程中,需要对数据进行限制,可以在 Binding 上设置数据校验
 >
@@ -1485,7 +1486,7 @@ public partial class MainWindow : Window
 >
 > WPF在 Binding 上提供了 Validation 进行校验, Converter 进行转换
 
-##### 数据校验
+#### 数据校验
 
 > Binding 用于数据校验的属性是 ValidationRules ,在WPF中,要实现 Binding 的数据校验,需要以下几个步骤：
 >
@@ -1647,7 +1648,7 @@ public partial class MainWindow : Window
 > - 数据检验可以使用不同的验证规则,实现不同的验证需求,使用预定好的类来编写验证功能更加规范和方便,也可以为一个绑定添加多个规则,实现重用
 > - WPF数据检验可以使用 ErrorTemplate 属性,实现对验证失败时的视觉反馈,例如显示红色的感叹号或边框等
 
-##### 数据转换
+#### 数据转换
 
 > WPF提供了两种数据转换的方式：
 >
@@ -1655,13 +1656,13 @@ public partial class MainWindow : Window
 > >
 > > 转换器可以在XAML中定义为资源,并在绑定中引用
 >
-> >DataTrigger方法，直接在XAML里面对数据进行处理，展示所需要的内容
+> >DataTrigger方法,直接在XAML里面对数据进行处理,展示所需要的内容
 > >
 > >DataTrigger 可以根据绑定的数据的值或条件来改变控件的属性或样式
 > >
 > >DataTrigger 可以在 Style 或 ControlTemplate 中定义
 
-+ Converter
++ Converter - 值转换器
 
 > ```c#
 > /// <summary>
@@ -1757,43 +1758,303 @@ public partial class MainWindow : Window
 > }
 > ```
 
-+ DataTrigger
++ DataTrigger - 数据触发器
 
 > ```xaml
 > <Window.Resources>
->     <!-- DataTrigger式 -->
->     <Style x:Key="AddButton" TargetType="Button">
->         <!-- 设置按钮默认不可见 -->
->         <Setter Property="Visibility" Value="Collapsed"></Setter>
->         <!-- 设置触发器 -->
->         <Style.Triggers>
->             <DataTrigger Binding="{Binding IsChecked,ElementName=Add}" Value="true">
->                 <Setter Property="Visibility" Value="Visible"></Setter>
->             </DataTrigger>
->         </Style.Triggers>
->     </Style>
->     <Style x:Key="DivButton" TargetType="Button">
->         <!-- 设置按钮默认不可见 -->
->         <Setter Property="Visibility" Value="Collapsed"></Setter>
->         <!-- 设置触发器 -->
->         <Style.Triggers>
->             <DataTrigger Binding="{Binding IsChecked,ElementName=Divide}" Value="true">
->                 <Setter Property="Visibility" Value="Visible"></Setter>
->             </DataTrigger>
->         </Style.Triggers>
->     </Style>
+>  <!-- DataTrigger式 -->
+>  <Style x:Key="AddButton" TargetType="Button">
+>      <!-- 设置按钮默认不可见 -->
+>      <Setter Property="Visibility" Value="Collapsed"></Setter>
+>      <!-- 设置触发器 -->
+>      <Style.Triggers>
+>          <DataTrigger Binding="{Binding IsChecked,ElementName=Add}" Value="true">
+>              <Setter Property="Visibility" Value="Visible"></Setter>
+>          </DataTrigger>
+>      </Style.Triggers>
+>  </Style>
+>  <Style x:Key="DivButton" TargetType="Button">
+>      <!-- 设置按钮默认不可见 -->
+>      <Setter Property="Visibility" Value="Collapsed"></Setter>
+>      <!-- 设置触发器 -->
+>      <Style.Triggers>
+>          <DataTrigger Binding="{Binding IsChecked,ElementName=Divide}" Value="true">
+>              <Setter Property="Visibility" Value="Visible"></Setter>
+>          </DataTrigger>
+>      </Style.Triggers>
+>  </Style>
 > </Window.Resources>
 > <StackPanel Background="LightBlue">
->     <StackPanel Orientation="Horizontal">
->         <RadioButton x:Name="Add" Content="Add" IsChecked="{Binding AddIsVisible}"></RadioButton>
->         <RadioButton x:Name="Divide" Content="Divide" IsChecked="{Binding DivideIsVisible}"></RadioButton>
->     </StackPanel>
->     <StackPanel Orientation="Horizontal">
->         <!-- 绑定对应的标志位及转换器 -->
->         <Button Content="Add" Style="{StaticResource AddButton}">
->         </Button>
->         <Button Content="Divide" Style="{StaticResource DivButton}">
->         </Button>
->     </StackPanel>
+>  <StackPanel Orientation="Horizontal">
+>      <RadioButton x:Name="Add" Content="Add" IsChecked="{Binding AddIsVisible}"></RadioButton>
+>      <RadioButton x:Name="Divide" Content="Divide" IsChecked="{Binding DivideIsVisible}"></RadioButton>
+>  </StackPanel>
+>  <StackPanel Orientation="Horizontal">
+>      <!-- 绑定对应的标志位及转换器 -->
+>      <Button Content="Add" Style="{StaticResource AddButton}">
+>      </Button>
+>      <Button Content="Divide" Style="{StaticResource DivButton}">
+>      </Button>
+>  </StackPanel>
 > </StackPanel>
 > ```
+
+### MultiBinding
+
+> WPF的MultiBinding是一种数据绑定的方法,它可以将多个数据源的值绑定到一个目标属性上,也就是说需要显示的信息不止由一个数据源来决定,例如将多个字符串拼接成一个文本,或者将多个布尔值进行逻辑运算得到一个可见性值
+>
+> 多路绑定一般都需要使用到多值转换器,MultiBinding需要使用一个实现了IMultiValueConverter接口的转换器,来定义如何将多个源值转换为目标值,以及如何将目标值转换回源值
+
+```xaml
+<Window.Resources>
+    <!-- 评价转换器 -->
+    <local:RatingConverter x:Key="RatingConverter" />
+</Window.Resources>
+<Grid>
+    <!-- 绑定产品列表 -->
+    <ListView ItemsSource="{Binding products}">
+        <ListView.ItemContainerStyle>
+            <Style TargetType="ListViewItem">
+                <Setter Property="Height" Value="30" />
+                <Setter Property="HorizontalContentAlignment" Value="Center" />
+            </Style>
+        </ListView.ItemContainerStyle>
+        <ListView.View>
+            <GridView>
+                <GridView.ColumnHeaderContainerStyle>
+                    <Style TargetType="GridViewColumnHeader">
+                        <Setter Property="Height" Value="30" />
+                    </Style>
+                </GridView.ColumnHeaderContainerStyle>
+                <GridViewColumn Header="名称" Width="100" DisplayMemberBinding="{Binding Name}" />
+                <GridViewColumn Header="质量" Width="100" DisplayMemberBinding="{Binding Score}" />
+                <GridViewColumn Header="服务" Width="100" DisplayMemberBinding="{Binding Service}" />
+                <GridViewColumn Header="评价" Width="100">
+                    <GridViewColumn.DisplayMemberBinding>
+                        <!-- 多值绑定到评价转换器 -->
+                        <MultiBinding Converter="{StaticResource RatingConverter}">
+                            <Binding Path="Score" />
+                            <Binding Path="Service" />
+                        </MultiBinding>
+                    </GridViewColumn.DisplayMemberBinding>
+                </GridViewColumn>
+            </GridView>
+        </ListView.View>
+    </ListView>
+</Grid>
+```
+
+```c#
+public partial class MainWindow : Window
+{
+    // 产品列表
+    public List<object> products { get; set; }
+
+    public MainWindow()
+    {
+        InitializeComponent();
+        products = new List<object>();
+        InitializeComponent();
+        products.Add(new { Name = "产品一", Score = 90, Service = 40 });
+        products.Add(new { Name = "产品二", Score = 70, Service = 70 });
+        products.Add(new { Name = "产品三", Score = 50, Service = 80 });
+        DataContext = this;
+    }
+}
+```
+
+```c#
+/// <summary>
+/// 评价转换器
+/// </summary>
+public class RatingConverter : IMultiValueConverter
+{
+    // 用于将数据从源绑定转换为目标绑定时调用
+    public object Convert(object[] values, Type targetType, object parameter, CultureInfo culture)
+    {
+        if (int.Parse(values[0].ToString()) >= 60 && int.Parse(values[1].ToString()) >= 60)
+            return "✔";
+        return "✘";
+    }
+
+    // 用于将数据从目标绑定转换为源绑定时调用
+    public object[] ConvertBack(object value, Type[] targetTypes, object parameter, CultureInfo culture)
+    {
+        throw new NotImplementedException();
+    }
+}
+```
+
+# 依赖属性与附加属性
+
+### CLR属性
+
+> CLR属性主要实现了面向对象的封装
+>
+> CLR属性是通过get和set访问器方法来实现的,这些方法允许你在读取或写入属性时执行自定义代码
+
+```c#
+private string? name;
+
+// CLR 属性
+public string? Name
+{
+    get => name;
+    set => name = value;  
+}
+```
+
+### 依赖属性
+
+#### 对内存的使用机制
+
+> > CLR属性是常见的.NET属性类型,每个对象实例都有自己的一套CLR属性
+> >
+> > 每当创建一个新的对象实例时,都会为该实例的所有CL属性分配内存
+>
+> > 依赖属性是WPF中的特殊属性类型,它的设计目标是减少内存使用
+> >
+> > 依赖属性并不为每个对象实例分配内存,而是将属性值存储在全局的哈希表中 
+> >
+> > 对于拥有依赖属性的类来说,其实例化的对象可以称作为依赖对象(Dependency Object)),WPF中允许依赖对象在被创建时并不包含用于数据存储的空间,只保留在需要用到数据时能够获得默认值或借用其他对象的数据,具有实施分配空间的能力
+
+#### 自定义依赖属性
+
+> 在编写一般属性时,通常是声明字段,然后添加get和set块封装为CLR属性
+>
+> 而在编写依赖属性时,需要进行下面四个步骤
+
+```c#
+public class Student : DependencyObject
+{
+     // 依赖属性 声明静态只读字段
+     public static readonly DependencyProperty NameProperty = DependencyProperty.Register(
+         nameof(Name), typeof(string), typeof(Student), new PropertyMetadata(default(string)));
+     
+     // CLR属性包装器
+     public string Name
+     {
+         get => (string) GetValue(NameProperty);
+         set => SetValue(NameProperty, value);
+     }
+}z
+```
+
+> 依赖属性声明参数
+>
+> `DependencyProperty.Register( Para1 , Para2 , Para3 , Para4 , Para5 );`
+>
+> + Para1 : 指定依赖属性的 CLR 属性包装器
+> + Para2 : 指定依赖属性储存什么类型的值
+> + Para3 : 指定依赖属性的宿主类型
+> + Para4 : 指定依赖属性功能,如:默认值、回调函数、继承、绑定等
+> + Para5 : 委托校验器
+
+#### 只读依赖属性
+
+> 在WPF中只读的依赖属性的定义方式与一般依赖属性的定义方式基本一样,只读依赖属性仅仅是用 DependencyProperty.RegisterReadonly 替换了 DependencyProperty.Register
+
+```c#
+public class Member : DependencyObject
+{
+    public void Initialize()
+    {
+        SetValue(NameKey, 9);
+    }
+
+    // 依赖属性 声明静态只读字段
+    private static readonly DependencyPropertyKey NameKey =
+        DependencyProperty.RegisterReadOnly(nameof(Name),
+            typeof(string),
+            typeof(Member),
+            new PropertyMetadata(0));
+
+    // 属性包装器,只提供 GetValue ,也可以设置 private 的 SetValue 进行限制
+    public string Name
+    {
+        get => (string)GetValue(NameKey.DependencyProperty);
+    }
+}
+```
+
+#### 依赖属性的继承
+
+> 元素可以从其在对象树中的父级继承依赖属性的值
+>
+> 属性值继承是一种机制,通过这种机制,依赖属性值可以在包含该属性的元素树中从父元素传播到子元素
+
+```xaml
+<Window x:Class="EquipmentRandomTesting.MainWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:local="clr-namespace:EquipmentRandomTesting"
+        mc:Ignorable="d"
+        Title="主页" Height="450" Width="800"
+        FontSize="16">
+    <!-- 在根部声明 字体大小 依赖属性 -->
+    <StackPanel>
+        <!-- 接收元素树的依赖属性传播 -->
+        <TextBlock>txt1</TextBlock>
+        <Canvas>
+            <TextBlock Canvas.Top="100">txt2</TextBlock>
+        </Canvas>
+        <!-- 显示定义自己的依赖属性 -->
+        <!-- 继承被打断 -->
+        <TextBlock TextElement.FontSize="32">txt3</TextBlock>
+    </StackPanel>
+</Window>
+```
+
+#### 依赖属性的优先级
+
+> WPF属性系统中任何基于属性的输入都可以设置依赖属性的值
+>
+> 由于存在依赖属性值优先级,使得属性获取值的方式的各种方案得以按可预测的方式交互
+
+```xaml
+<StackPanel>
+    <StackPanel.Resources>
+        <!-- 声明资源并指定控件元素 -->
+        <Style TargetType="{x:Type Button}">
+            <Setter Property="Background" Value="Orange"></Setter>
+        </Style>
+    </StackPanel.Resources>
+    <!-- 默认使用资源指定样式 -->
+    <Button>按钮1</Button>
+    <!-- 对属性设定值提升优先级 -->
+    <Button Background="DarkGreen">按钮2</Button>
+</StackPanel>
+```
+
+> WPF每访问一个依赖属性,它都会按照下面的顺序由高到底处理该值
+>
+> 具体优先级`从最高到最低`排序如下：
+>
+> + 动画
+> + 绑定
+> + 本地值
+> + 自定义 Style Trigger
+> + 自定义 Template Trigger
+> + 自定义 Style Setter
+> + 默认 Style Trigger
+> + 默认 Style Setter
+> + 继承值
+> + 默认值
+
+### 附加属性
+
+> 附加是一种特殊的依赖属性。附加属性是说,一个属性本来不属于某个对象,但是由于某种需求而被后来附加上,表现出来的就是被环境赋予的属性
+
+```xaml
+<Grid>
+    <Grid.ColumnDefinitions>
+        <ColumnDefinition></ColumnDefinition>
+        <ColumnDefinition></ColumnDefinition>
+    </Grid.ColumnDefinitions>
+    <!-- Grid.Column 就是被Grid包裹而来的附加属性 -->
+    <Border Grid.Column="1" Background="Red"></Border>
+</Grid>
+```
+
