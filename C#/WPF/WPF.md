@@ -2014,7 +2014,7 @@ public class Member : DependencyObject
 > 由于存在依赖属性值优先级,使得属性获取值的方式的各种方案得以按可预测的方式交互
 
 ```xaml
-<StackPanel>
+<StackPanel> 
     <StackPanel.Resources>
         <!-- 声明资源并指定控件元素 -->
         <Style TargetType="{x:Type Button}">
@@ -2046,6 +2046,10 @@ public class Member : DependencyObject
 ### 附加属性
 
 > 附加是一种特殊的依赖属性。附加属性是说,一个属性本来不属于某个对象,但是由于某种需求而被后来附加上,表现出来的就是被环境赋予的属性
+>
+> 它允许给一个对象添加一个值,而该对象可能对这个值一无所知
+>
+> 附加属性的作用就是将属性与数据类型,也就是宿主,进行解耦,让数据类型的设计更加灵活
 
 ```xaml
 <Grid>
@@ -2053,8 +2057,43 @@ public class Member : DependencyObject
         <ColumnDefinition></ColumnDefinition>
         <ColumnDefinition></ColumnDefinition>
     </Grid.ColumnDefinitions>
-    <!-- Grid.Column 就是被Grid包裹而来的附加属性 -->
+    <!-- 将Border置于Grid中,其就拥有了Grid.Column等附加属性 -->
     <Border Grid.Column="1" Background="Red"></Border>
 </Grid>
+```
+
+### 自定义附加属性
+
+> 自定义附加属性和定义一般的依赖属性一样没什么区别,只是用RegisterAttached方法代替了Register方法
+
+```c#
+/// <summary>
+/// 自定义附加属性类
+/// </summary>
+public class AttachedPropertyClass
+{
+    /**
+     * 1. 附加属性的名称
+     * 2. 附加属性的类型
+     * 3. 附加属性所属的类
+     * 4. 附加属性的元数据
+     */
+    // 通过使用 RegisterAttached 来注册一个附加属性
+    public static readonly DependencyProperty IsAttachedProperty =
+        DependencyProperty.RegisterAttached
+        ("IsAttached", typeof(bool), typeof(AttachedPropertyClass),
+            new FrameworkPropertyMetadata(false));
+
+    // 通过静态方法的形式暴露读的操作
+    public static bool GetIsAttached(DependencyObject dpo)
+    {
+        return (bool)dpo.GetValue(IsAttachedProperty);
+    }
+
+    public static void SetIsAttached(DependencyObject dpo, bool value)
+    {
+        dpo.SetValue(IsAttachedProperty, value);
+    }
+}
 ```
 
